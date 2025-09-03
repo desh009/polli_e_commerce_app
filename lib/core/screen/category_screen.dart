@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class CategoryScreen extends StatefulWidget {
   final String? initialSelectedCategory; // initial category
 
-  const CategoryScreen({Key? key, this.initialSelectedCategory}) : super(key: key);
+  const CategoryScreen({Key? key, this.initialSelectedCategory})
+    : super(key: key);
 
   @override
   _CategoryScreenState createState() => _CategoryScreenState();
@@ -13,33 +14,78 @@ class _CategoryScreenState extends State<CategoryScreen> {
   final List<String> categories = ['গুড়', 'তেল', 'মসলা', 'Special Item'];
   String? selectedCategory;
 
-  final Map<String, String> gurOptionsWithImage = {
-    'ঘোলা গুড়': 'assets/images/8521_FLEUR_DE_TOFEEWEB.jpg',
-    'বিজ গুড়': 'assets/images/black-urad-laddu-recipe7-min.jpg',
-    'নারকেল গুড়': 'assets/images/vegan-skillet-cornbread-480x480.jpg',
-    'দানাদার গুড়': 'assets/images/_41_frd_1731470695.jpg',
-    'চকলেট গুড়': 'assets/images/Banoffee-Choc.jpg',
-    'পাটালি গুড়': 'assets/images/patali-gur-web.png',
+  final Map<String, Map<String, dynamic>> gurOptions = {
+    'ঘোলা গুড়': {
+      'image': 'assets/images/8521_FLEUR_DE_TOFEEWEB.jpg',
+      'price': 120,
+    },
+    'বিজ গুড়': {
+      'image': 'assets/images/black-urad-laddu-recipe7-min.jpg',
+      'price': 150,
+    },
+    'নারকেল গুড়': {
+      'image': 'assets/images/vegan-skillet-cornbread-480x480.jpg',
+      'price': 200,
+    },
+    'দানাদার গুড়': {
+      'image': 'assets/images/_41_frd_1731470695.jpg',
+      'price': 180,
+    },
+    'চকলেট গুড়': {'image': 'assets/images/Banoffee-Choc.jpg', 'price': 220},
+    'পাটালি গুড়': {'image': 'assets/images/patali-gur-web.png', 'price': 250},
   };
 
-  final Map<String, String> telOptionsWithImage = {
-    'নারকেল তেল': 'assets/images/1731220762-f64714028e196b87c87dbde76bcdeb59.jpg',
-    'সরিষা তেল': 'assets/images/80.jpg',
+  final Map<String, Map<String, dynamic>> telOptionsWithImage = {
+    'নারকেল তেল': {
+      'image': 'assets/images/1731220762-f64714028e196b87c87dbde76bcdeb59.jpg',
+      'price': 350,
+    },
+    'সরিষা তেল': {'image': 'assets/images/80.jpg', 'price': 300},
   };
 
-  final Map<String, String> moslaOptionsWithImage = {
-    'মরিচ': 'assets/images/morich.jpg',
-    'হলুদ': 'assets/images/holud.jpg',
-    'জিরা': 'assets/images/jira.jpg',
-    'ধনিয়া': 'assets/images/dhaniya.jpg',
-    'গরম মশলা': 'assets/images/gorom_mosla.jpg',
+  final Map<String, Map<String, dynamic>> moslaOptionsWithImage = {
+    'মরিচ': {
+      'image': 'assets/images/green-hot-chili-pepper-on-white-photo.jpg',
+      'price': 50,
+    },
+    'হলুদ': {
+      'image':
+          'assets/images/png-clipart-turmeric-curcumin-ras-el-hanout-home-remedy-cancer-turmeric-superfood-therapy-thumbnail.png',
+      'price': 40,
+    },
+    'জিরা': {
+      'image': 'assets/images/pngtree-zira-or-cumin-png-image_13177631.png',
+      'price': 60,
+    },
+    'ধনিয়া': {
+      'image': 'assets/images/coriander-powder-11555924245y9eah152r0.png',
+      'price': 55,
+    },
+    'গরম মশলা': {
+      'image':
+          'assets/images/986-9865897_herbs-and-spices-clipart-transparent-khada-garam-masala.png',
+      'price': 80,
+    },
   };
 
-  final Map<String, String> specialItemOptionsWithImage = {
-    'খোলিসা মধু': 'assets/images/mohu.jpg',
-    'কুমড়ো বরি': 'assets/images/komro.jpg',
-    'ঘি': 'assets/images/ghi.jpg',
-    'চালের গুড়া': 'assets/images/chaler_gura.jpg',
+  final Map<String, Map<String, dynamic>>
+  specialItemOptionsWithImageAndPrice = {
+    'খোলিসা মধু': {'image': 'assets/images/sorisha-modhu.png', 'price': 120},
+    'কুমড়ো বরি': {
+      'image':
+          'assets/images/1cc35ba482-q8iq1pim5akvhcaq4dr2s6sw0f53373d4uuep4udjc.jpg',
+      'price': 80,
+    },
+    'ঘি': {
+      'image':
+          'assets/images/pure-tup-or-desi-ghee-also-known-as-clarified-liquid-butter-free-photo.jpg',
+      'price': 150,
+    },
+    'চালের গুড়া': {
+      'image':
+          'assets/images/free-from-impurities-food-grade-100-pure-whole-wheat-flour-for-making-chapati-974.jpg.jpg',
+      'price': 60,
+    },
   };
 
   TextEditingController minPriceController = TextEditingController();
@@ -58,7 +104,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
         title: const Text('পল্লী স্বাদ'),
         backgroundColor: Colors.green,
         actions: [
-          IconButton(icon: const Icon(Icons.shopping_bag_outlined), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.shopping_bag_outlined),
+            onPressed: () {},
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -90,10 +139,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 3,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 3,
+                          ),
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
                         return categoryCard(categories[index]);
@@ -112,10 +162,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 },
               ),
             ),
-            if (selectedCategory == 'গুড়') showOptions('গুড় এর ধরনসমূহ', gurOptionsWithImage),
-            if (selectedCategory == 'তেল') showOptions('তেলের ধরনসমূহ', telOptionsWithImage),
-            if (selectedCategory == 'মসলা') showOptions('মসলার ধরনসমূহ', moslaOptionsWithImage),
-            if (selectedCategory == 'Special Item') showOptions('Special Item', specialItemOptionsWithImage),
+            if (selectedCategory == 'গুড়')
+              showOptions(
+                'গুড় এর ধরনসমূহ',
+                gurOptions.cast<String, Map<String, dynamic>>(),
+              ),
+            if (selectedCategory == 'তেল')
+              showOptions(
+                'তেলের ধরনসমূহ',
+                telOptionsWithImage.cast<String, Map<String, dynamic>>(),
+              ),
+            if (selectedCategory == 'মসলা')
+              showOptions(
+                'মসলার ধরনসমূহ',
+                moslaOptionsWithImage.cast<String, Map<String, dynamic>>(),
+              ),
+            if (selectedCategory == 'Special Item')
+              showOptions(
+                'Special Item',
+                specialItemOptionsWithImageAndPrice
+                    .cast<String, Map<String, dynamic>>(),
+              ),
             selectedOptionDisplay(),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -215,27 +282,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  Widget showOptions(String title, Map<String, String> optionsWithImage) {
+  Widget showOptions(String title, Map<String, Map<String, dynamic>> options) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: optionsWithImage.length,
+          itemCount: options.length,
           itemBuilder: (context, index) {
-            String optionName = optionsWithImage.keys.elementAt(index);
-            String imagePath = optionsWithImage[optionName]!;
+            String optionName = options.keys.elementAt(index);
+            String imagePath = options[optionName]!['image'];
+            int price = options[optionName]!['price'];
+
             return Card(
               color: Colors.brown.shade50,
               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: ListTile(
                 leading: Image.asset(imagePath, width: 40, height: 40),
                 title: Text(optionName),
+                subtitle: Text('৳$price'),
+
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
                   setState(() {
@@ -252,15 +326,25 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Widget selectedOptionDisplay() {
     String? imagePath;
+    int? price;
 
-    if (gurOptionsWithImage.containsKey(selectedCategory)) {
-      imagePath = gurOptionsWithImage[selectedCategory];
+    if (gurOptions.containsKey(selectedCategory)) {
+      imagePath = gurOptions[selectedCategory]!['image'];
+      price = gurOptions[selectedCategory]!['price'];
     } else if (telOptionsWithImage.containsKey(selectedCategory)) {
-      imagePath = telOptionsWithImage[selectedCategory];
+      imagePath = telOptionsWithImage[selectedCategory]!['image'];
+      price = telOptionsWithImage[selectedCategory]!['price'] as int?;
     } else if (moslaOptionsWithImage.containsKey(selectedCategory)) {
-      imagePath = moslaOptionsWithImage[selectedCategory];
-    } else if (specialItemOptionsWithImage.containsKey(selectedCategory)) {
-      imagePath = specialItemOptionsWithImage[selectedCategory];
+      imagePath = moslaOptionsWithImage[selectedCategory]!['image'];
+      price = moslaOptionsWithImage[selectedCategory]!['price'];
+    } else if (specialItemOptionsWithImageAndPrice.containsKey(
+      selectedCategory,
+    )) {
+      imagePath =
+          specialItemOptionsWithImageAndPrice[selectedCategory]!['image'];
+      price =
+          specialItemOptionsWithImageAndPrice[selectedCategory]!['price']
+              as int?;
     }
 
     if (selectedCategory != null && imagePath != null) {
