@@ -330,13 +330,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     if (gurOptions.containsKey(selectedCategory)) {
       imagePath = gurOptions[selectedCategory]!['image'];
-      price = gurOptions[selectedCategory]!['price'];
+      price = gurOptions[selectedCategory]!['price'] as int?;
     } else if (telOptionsWithImage.containsKey(selectedCategory)) {
       imagePath = telOptionsWithImage[selectedCategory]!['image'];
       price = telOptionsWithImage[selectedCategory]!['price'] as int?;
     } else if (moslaOptionsWithImage.containsKey(selectedCategory)) {
       imagePath = moslaOptionsWithImage[selectedCategory]!['image'];
-      price = moslaOptionsWithImage[selectedCategory]!['price'];
+      price = moslaOptionsWithImage[selectedCategory]!['price'] as int?;
     } else if (specialItemOptionsWithImageAndPrice.containsKey(
       selectedCategory,
     )) {
@@ -347,7 +347,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               as int?;
     }
 
-    if (selectedCategory != null && imagePath != null) {
+    if (selectedCategory != null && imagePath != null && price != null) {
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -358,7 +358,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 5),
-            Image.asset(imagePath, width: 100, height: 100),
+            Image.asset(
+              imagePath,
+              width: 100,
+              height: 100,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.image_not_supported, size: 100);
+              },
+            ),
+            const SizedBox(height: 5),
+            Text('Price: ৳$price', style: const TextStyle(fontSize: 16)),
           ],
         ),
       );
