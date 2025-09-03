@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:polli_e_commerce_app/core/screen/category_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 
@@ -19,11 +20,7 @@ class TelScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.primaryLight,
       ),
-
-      // ✅ Drawer যোগ করা হলো (GurScreen এর মতো)
       drawer: CustomDrawer(),
-
-      // ✅ Responsive Body (Wrap দিয়ে গ্রিড)
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Wrap(
@@ -31,11 +28,17 @@ class TelScreen extends StatelessWidget {
           runSpacing: 12,
           children: telItems.map((item) {
             return SizedBox(
-              width: (MediaQuery.of(context).size.width - 36) / 2, // প্রতি লাইনে 2 টা
+              width: (MediaQuery.of(context).size.width - 36) / 2,
               child: InkWell(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("${item['name']} clicked")),
+                  // ✅ CategoryScreen এ data pathano
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryScreen(
+                        initialSelectedCategory: item['name'],
+                      ),
+                    ),
                   );
                 },
                 child: Container(

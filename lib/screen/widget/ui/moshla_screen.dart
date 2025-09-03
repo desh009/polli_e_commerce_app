@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:polli_e_commerce_app/core/screen/category_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 
@@ -22,10 +23,7 @@ class MoslaScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.primaryLight,
       ),
-
-      // ✅ Drawer (Reuse করার জন্য পরে আলাদা CustomDrawer বানানো যাবে)
-      drawer:CustomDrawer(),
-      // ✅ Responsive Body
+      drawer: CustomDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Wrap(
@@ -33,11 +31,17 @@ class MoslaScreen extends StatelessWidget {
           runSpacing: 12,
           children: moslaItems.map((item) {
             return SizedBox(
-              width: (MediaQuery.of(context).size.width - 36) / 2, // 2 per row
+              width: (MediaQuery.of(context).size.width - 36) / 2,
               child: InkWell(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("${item['name']} clicked")),
+                  // ✅ CategoryScreen-এ ক্লিক করা আইটেমের নাম পাঠানো
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryScreen(
+                        initialSelectedCategory: item['name'],
+                      ),
+                    ),
                   );
                 },
                 child: Container(
