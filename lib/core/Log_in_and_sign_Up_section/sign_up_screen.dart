@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+// OTP Screen import korte hobe
+import 'otp_verification_page.dart'; // OTP screen file er path thik kore dite hobe
+
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
@@ -18,11 +21,20 @@ class _SignupPageState extends State<SignupPage> {
 
   void _signup() {
     if (_formKey.currentState!.validate()) {
-      // ekhane signup API call korte hobe
+      // SnackBar dekhanor jonno
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account Created Successfully!")),
       );
-      Navigator.pop(context); // login page e fire jabe
+
+      // OTP Screen e navigate
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtpVerificationPage(
+            mobileNumber: _mobileController.text,
+          ),
+        ),
+      );
     }
   }
 
