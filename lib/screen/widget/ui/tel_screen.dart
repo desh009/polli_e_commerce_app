@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:polli_e_commerce_app/core/screen/constuctor/constructor.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 
-class TelScreen extends StatefulWidget {
+class TelScreen extends StatelessWidget {
   const TelScreen({super.key});
 
-  @override
-  State<TelScreen> createState() => _TelScreenState();
-}
-
-class _TelScreenState extends State<TelScreen> {
-  String? selectedCategory;
-  String? selectedOption;
   final List<Map<String, dynamic>> telItems = const [
     {"name": "নারকেল তেল", "items": 10},
     {"name": "সরিষার তেল", "items": 8},
@@ -27,32 +19,23 @@ class _TelScreenState extends State<TelScreen> {
         centerTitle: true,
         backgroundColor: AppColors.primaryLight,
       ),
-      drawer: CustomDrawer(
-        onSelectCategory: (String category, String? option) {
-          setState(() {
-            selectedCategory = category;
-            selectedOption = option;
-          });
-          Navigator.pop(context); // drawer বন্ধ
-        },
-      ),      body: Padding(
+
+      // ✅ Drawer যোগ করা হলো (GurScreen এর মতো)
+      drawer: CustomDrawer(),
+
+      // ✅ Responsive Body (Wrap দিয়ে গ্রিড)
+      body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Wrap(
           spacing: 12,
           runSpacing: 12,
           children: telItems.map((item) {
             return SizedBox(
-              width: (MediaQuery.of(context).size.width - 36) / 2,
+              width: (MediaQuery.of(context).size.width - 36) / 2, // প্রতি লাইনে 2 টা
               child: InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CategoryScreen(
-                        initialSelectedCategory: "তেল",
-                        initialSelectedOption: item['name'],
-                      ),
-                    ),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("${item['name']} clicked")),
                   );
                 },
                 child: Container(

@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:polli_e_commerce_app/core/screen/catergory/view/category_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
-import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart' hide CategoryScreen;
+import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 
-class MoslaScreen extends StatefulWidget {
+class MoslaScreen extends StatelessWidget {
   const MoslaScreen({super.key});
-
-  @override
-  State<MoslaScreen> createState() => _MoslaScreenState();
-}
-// there is no more vais in mumbai..every body knows that honesty is the best policy,there is no body who knows honesty is not a good policy
-class _MoslaScreenState extends State<MoslaScreen> {
-  String? selectedCategory;
 
   final List<Map<String, dynamic>> moslaItems = const [
     {"name": "মরিচ", "items": 10},
@@ -30,14 +22,10 @@ class _MoslaScreenState extends State<MoslaScreen> {
         centerTitle: true,
         backgroundColor: AppColors.primaryLight,
       ),
-      drawer: CustomDrawer(
-        onSelectCategory: (String category, String? option) {
-          setState(() {
-            selectedCategory = category;
-          });
-          Navigator.pop(context); // drawer বন্ধ
-        },
-      ),
+
+      // ✅ Drawer (Reuse করার জন্য পরে আলাদা CustomDrawer বানানো যাবে)
+      drawer:CustomDrawer(),
+      // ✅ Responsive Body
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Wrap(
@@ -45,17 +33,11 @@ class _MoslaScreenState extends State<MoslaScreen> {
           runSpacing: 12,
           children: moslaItems.map((item) {
             return SizedBox(
-              width: (MediaQuery.of(context).size.width - 36) / 2,
+              width: (MediaQuery.of(context).size.width - 36) / 2, // 2 per row
               child: InkWell(
                 onTap: () {
-                  // ✅ শুধু item name পাঠানো হচ্ছে
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CategoryScreen(
-                        initialSelectedCategory: item['name'], 
-                      ),
-                    ),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("${item['name']} clicked")),
                   );
                 },
                 child: Container(
