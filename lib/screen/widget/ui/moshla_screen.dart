@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:polli_e_commerce_app/core/screen/category_screen.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/view/category_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
-import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart' hide CategoryScreen;
 
-class MoslaScreen extends StatelessWidget {
+class MoslaScreen extends StatefulWidget {
   const MoslaScreen({super.key});
+
+  @override
+  State<MoslaScreen> createState() => _MoslaScreenState();
+}
+// there is no more vais in mumbai..every body knows that honesty is the best policy,there is no body who knows honesty is not a good policy
+class _MoslaScreenState extends State<MoslaScreen> {
+  String? selectedCategory;
 
   final List<Map<String, dynamic>> moslaItems = const [
     {"name": "মরিচ", "items": 10},
@@ -23,7 +30,14 @@ class MoslaScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.primaryLight,
       ),
-      drawer: CustomDrawer(),
+      drawer: CustomDrawer(
+        onSelectCategory: (String category, String? option) {
+          setState(() {
+            selectedCategory = category;
+          });
+          Navigator.pop(context); // drawer বন্ধ
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Wrap(
@@ -34,12 +48,12 @@ class MoslaScreen extends StatelessWidget {
               width: (MediaQuery.of(context).size.width - 36) / 2,
               child: InkWell(
                 onTap: () {
-                  // ✅ CategoryScreen-এ ক্লিক করা আইটেমের নাম পাঠানো
+                  // ✅ শুধু item name পাঠানো হচ্ছে
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CategoryScreen(
-                        initialSelectedCategory: item['name'],
+                        initialSelectedCategory: item['name'], 
                       ),
                     ),
                   );

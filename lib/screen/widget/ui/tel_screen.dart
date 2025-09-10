@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:polli_e_commerce_app/core/screen/category_screen.dart';
+import 'package:polli_e_commerce_app/core/screen/constuctor/constructor.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 
-class TelScreen extends StatelessWidget {
+class TelScreen extends StatefulWidget {
   const TelScreen({super.key});
 
+  @override
+  State<TelScreen> createState() => _TelScreenState();
+}
+
+class _TelScreenState extends State<TelScreen> {
+  String? selectedCategory;
+  String? selectedOption;
   final List<Map<String, dynamic>> telItems = const [
     {"name": "নারকেল তেল", "items": 10},
     {"name": "সরিষার তেল", "items": 8},
@@ -20,8 +27,15 @@ class TelScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.primaryLight,
       ),
-      drawer: CustomDrawer(),
-      body: Padding(
+      drawer: CustomDrawer(
+        onSelectCategory: (String category, String? option) {
+          setState(() {
+            selectedCategory = category;
+            selectedOption = option;
+          });
+          Navigator.pop(context); // drawer বন্ধ
+        },
+      ),      body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Wrap(
           spacing: 12,
@@ -31,12 +45,12 @@ class TelScreen extends StatelessWidget {
               width: (MediaQuery.of(context).size.width - 36) / 2,
               child: InkWell(
                 onTap: () {
-                  // ✅ CategoryScreen এ data pathano
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CategoryScreen(
-                        initialSelectedCategory: item['name'],
+                        initialSelectedCategory: "তেল",
+                        initialSelectedOption: item['name'],
                       ),
                     ),
                   );

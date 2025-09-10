@@ -1,7 +1,10 @@
-
-
-
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/get_instance.dart';
+import 'package:get/get_instance/src/bindings_interface.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/binder/add_to_cart_binder.dart';
+import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
+import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/binder/log_out_binder.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/view/logout_view.dart';
 import 'package:polli_e_commerce_app/moduls/main_layout/bindings/main_layout_bindings.dart';
@@ -21,7 +24,6 @@ part 'app_rutes.dart';
 
 class AppPages {
   AppPages._();
-
 
   static final routes = [
     // GetPage(
@@ -44,11 +46,7 @@ class AppPages {
       page: () => MainLayoutView(),
       binding: MainLayoutBinding(),
     ),
-    GetPage(
-      name: _Paths.HOME,
-      page: () =>  HomePage(),
-      binding: HomeBinding(),
-    ),
+    GetPage(name: _Paths.HOME, page: () => HomePage(), binding: HomeBinding()),
     GetPage(
       name: _Paths.MY_ORDER,
       page: () => const MyOrderView(),
@@ -79,6 +77,15 @@ class AppPages {
       page: () => const LogoutView(),
       binding: LogoutBinding(),
     ),
+
+    GetPage(
+      name: Routes.CART,
+      page: () => CartScreen(product: {}),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<CartController>(() => CartController());
+      }),
+    ),
+
     // GetPage(
     // //   name: _Paths.FORGOT_PASSWORD,
     //   page: () => ForgotPasswordView(),

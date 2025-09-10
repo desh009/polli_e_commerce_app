@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CategoryScreen extends StatefulWidget {
   final String? initialSelectedCategory; // << add koro
 
-  CategoryScreen({this.initialSelectedCategory}); // constructor
+  CategoryScreen({this.initialSelectedCategory, required initialSelectedOption}); // constructor
 
   @override
   _CategoryScreenState createState() => _CategoryScreenState();

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
+import 'package:polli_e_commerce_app/core/screen/constuctor/constructor.dart';
 
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/featured_option.dart.dart';
-import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart' hide CategoryScreen;
 import 'package:polli_e_commerce_app/ui/latest_products.dart';
 
 /// 🔹 DrawerController for state management
@@ -120,7 +121,17 @@ class HomePage extends StatelessWidget {
         ),
       ),
 
-      drawer: CustomDrawer(),
+      drawer: CustomDrawer(
+        onSelectCategory: (String category, String? option) {
+          Navigator.pop(context); // drawer close
+          Get.to(
+            () => CategoryScreen(
+              initialSelectedCategory: category,
+              initialSelectedOption: option,
+            ),
+          );
+        },
+      ),
 
       /// 🔹 Body Section
       body: SingleChildScrollView(

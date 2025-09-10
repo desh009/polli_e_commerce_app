@@ -29,6 +29,8 @@ abstract class Routes {
   static const MY_ORDER = _Paths.MY_ORDER;
   static const PROFILE = _Paths.PROFILE;
   static const LOGOUT = _Paths.LOGOUT;
+  static const CART = _Paths.CART;
+
 
 }
 
@@ -60,4 +62,6 @@ abstract class _Paths {
   static const MY_ORDER = '/my-order';
   static const PROFILE = '/profile';
   static const LOGOUT = '/logout';
+  static const CART = '/cart';
+
 }
