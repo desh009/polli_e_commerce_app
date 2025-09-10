@@ -24,7 +24,7 @@ class MoslaScreen extends StatelessWidget {
       ),
 
       // ✅ Drawer (Reuse করার জন্য পরে আলাদা CustomDrawer বানানো যাবে)
-      drawer:CustomDrawer(),
+      drawer:CustomDrawer(onSelectCategory: (String category, String? option) {  },),
       // ✅ Responsive Body
       body: Padding(
         padding: const EdgeInsets.all(12.0),

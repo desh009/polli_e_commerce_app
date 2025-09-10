@@ -23,7 +23,7 @@ class SpecialItemScreen extends StatelessWidget {
       ),
 
       // ✅ Drawer যোগ করা হলো
-      drawer: CustomDrawer()
+      drawer: CustomDrawer(onSelectCategory: (String category, String? option) {  },)
 ,
       // ✅ Responsive Body
       body: Padding(

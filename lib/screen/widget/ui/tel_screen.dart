@@ -21,7 +21,7 @@ class TelScreen extends StatelessWidget {
       ),
 
       // ✅ Drawer যোগ করা হলো (GurScreen এর মতো)
-      drawer: CustomDrawer(),
+      drawer: CustomDrawer(onSelectCategory: (String category, String? option) {  },),
 
       // ✅ Responsive Body (Wrap দিয়ে গ্রিড)
       body: Padding(
