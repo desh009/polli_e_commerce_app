@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/constuctor/constructor.dart';
-
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/featured_option.dart.dart';
-import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart' hide CategoryScreen;
+import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 import 'package:polli_e_commerce_app/ui/latest_products.dart';
 
 /// 🔹 DrawerController for state management
@@ -24,11 +23,13 @@ class HomePage extends StatelessWidget {
       "title": "খাঁটি হলুদ",
       "subtitle": "খাঁটি হলুদ, স্বাদের মুহূর্তের সঙ্গী",
     },
+
     {
       "image": "https://i.ibb.co/R9B3c2K/honey.jpg",
       "title": "প্রাকৃতিক মধু",
       "subtitle": "খাঁটি মধুর স্বাদ, প্রকৃতির উপহার",
     },
+
     {
       "image": "https://i.ibb.co/m8bRL1H/mustard-oil.jpg",
       "title": "সরিষার তেল",
