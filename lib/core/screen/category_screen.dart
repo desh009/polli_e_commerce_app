@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CategoryScreen extends StatefulWidget {
   final String? initialSelectedCategory; // initial category
 
-  const CategoryScreen({Key? key, this.initialSelectedCategory})
+  const CategoryScreen({Key? key, this.initialSelectedCategory, String? initialSelectedOption})
     : super(key: key);
 
   @override

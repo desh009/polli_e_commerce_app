@@ -9,17 +9,14 @@ import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 
-class DrawerControllerX extends GetxController {
-  var selectedItem = "".obs;
-}
-
 class CategoryScreen extends StatefulWidget {
+  final String? initialSelectedOption;
   final String? initialSelectedCategory;
 
   const CategoryScreen({
     super.key,
     this.initialSelectedCategory,
-    String? initialSelectedOption,
+    this.initialSelectedOption,
   });
 
   @override
@@ -27,58 +24,55 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  final int pendingOrders = 3;
-
-  // Controllers
   final CategoryController categoryController = Get.put(CategoryController());
-  late CartController cartController;
+  final CartController cartController = Get.put(CartController());
 
   bool showSortPanel = false;
-
+  bool showFilterPanel = false;
   String selectedSort = "Price Low to High";
 
   @override
   void initState() {
     super.initState();
-    cartController = Get.put(CartController());
 
-    // Set initial category if passed
-    if (widget.initialSelectedCategory != null) {
+    if (widget.initialSelectedCategory != null ||
+        widget.initialSelectedOption != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         categoryController.updateCategory(
-          widget.initialSelectedCategory!,
-          null,
+          widget.initialSelectedCategory ?? '',
+          widget.initialSelectedOption,
         );
       });
     }
   }
 
-  void applySort(List<Map<String, dynamic>> products) {
+  /// Sorting function
+  List<Map<String, dynamic>> applySort(List<Map<String, dynamic>> products) {
     switch (selectedSort) {
       case "Newest First":
-        products = products.reversed.toList();
-        break;
-      case "Oldest First":
-        break;
+        return products.reversed.toList();
       case "Name A to Z":
         products.sort((a, b) => a['name'].compareTo(b['name']));
-        break;
+        return products;
       case "Name Z to A":
         products.sort((a, b) => b['name'].compareTo(a['name']));
-        break;
+        return products;
       case "Price High to Low":
         products.sort(
           (a, b) => (b['price'] as num).compareTo(a['price'] as num),
         );
-        break;
+        return products;
       case "Price Low to High":
         products.sort(
           (a, b) => (a['price'] as num).compareTo(b['price'] as num),
         );
-        break;
+        return products;
+      default:
+        return products;
     }
   }
 
+  /// Dummy products per category
   List<Map<String, dynamic>> getProductsForCategory(String? category) {
     switch (category) {
       case 'গুড়':
@@ -87,33 +81,44 @@ class _CategoryScreenState extends State<CategoryScreen> {
             "name": "ঘোলা গুড়",
             "price": 120,
             "image": "assets/images/8521_FLEUR_DE_TOFEEWEB.jpg",
+            "description":
+                "ঘোলা গুড় প্রাকৃতিকভাবে তৈরি, স্বাস্থ্যসম্মত এবং মিষ্টি স্বাদের।",
           },
           {
             "name": "বিজ গুড়",
             "price": 150,
             "image": "assets/images/black-urad-laddu-recipe7-min.jpg",
+            "description": "বিজ গুড় পুষ্টিকর এবং রুচিতে সুস্বাদু।",
           },
           {
             "name": "নারকেল গুড়",
             "price": 200,
             "image": "assets/images/vegan-skillet-cornbread-480x480.jpg",
+            "description":
+                "প্রাকৃতিক নারকেল দিয়ে তৈরি, মিষ্টি এবং স্বাস্থ্যকর।",
           },
           {
             "name": "দানাদার গুড়",
             "price": 180,
             "image": "assets/images/_41_frd_1731470695.jpg",
+            "description": "দানা যুক্ত গুড়, খেতে মজাদার এবং শক্তিশালী।",
           },
           {
             "name": "চকলেট গুড়",
             "price": 220,
             "image": "assets/images/Banoffee-Choc.jpg",
+            "description":
+                "চকলেটের স্বাদ মিলিয়ে তৈরি, মিষ্টি প্রেমিকদের জন্য।",
           },
           {
             "name": "পাটালি গুড়",
             "price": 250,
             "image": "assets/images/patali-gur-web.png",
+            "description":
+                "বিশেষ প্রাকৃতিক পাটালি গুড়, দেহে শক্তি বৃদ্ধি করে।",
           },
         ];
+
       case 'তেল':
         return [
           {
@@ -121,66 +126,88 @@ class _CategoryScreenState extends State<CategoryScreen> {
             "price": 350,
             "image":
                 "assets/images/1731220762-f64714028e196b87c87dbde76bcdeb59.jpg",
+            "description": "শুদ্ধ নারকেল তেল, ত্বক ও চুলের জন্য উপকারী।",
           },
-          {"name": "সরিষা তেল", "price": 300, "image": "assets/images/80.jpg"},
+          {
+            "name": "সরিষা তেল",
+            "price": 300,
+            "image": "assets/images/80.jpg",
+            "description":
+                "প্রাকৃতিক সরিষা তেল, রান্নায় স্বাদ ও পুষ্টি বৃদ্ধি করে।",
+          },
         ];
+
       case 'মসলা':
         return [
           {
             "name": "মরিচ",
             "price": 50,
             "image": "assets/images/green-hot-chili-pepper-on-white-photo.jpg",
+            "description": "তাজা মরিচ, রান্নায় ঝাল স্বাদ দেয়।",
           },
           {
             "name": "হলুদ",
             "price": 40,
             "image":
                 "assets/images/png-clipart-turmeric-curcumin-ras-el-hanout-home-remedy-cancer-turmeric-superfood-therapy-thumbnail.png",
+            "description":
+                "প্রাকৃতিক হলুদ গুঁড়া, স্বাস্থ্যকর এবং রঙিন রান্নার জন্য।",
           },
           {
             "name": "জিরা",
             "price": 60,
             "image":
                 "assets/images/pngtree-zira-or-cumin-png-image_13177631.png",
+            "description": "জিরা গুঁড়া, খাবারে সুগন্ধ এবং স্বাদ যোগ করে।",
           },
           {
             "name": "ধনিয়া",
             "price": 55,
             "image": "assets/images/coriander-powder-11555924245y9eah152r0.png",
+            "description": "ধনিয়া গুঁড়া, স্বাদে মসৃণ এবং রান্নায় জরুরি।",
           },
           {
             "name": "গরম মশলা",
             "price": 80,
             "image":
                 "assets/images/986-9865897_herbs-and-spices-clipart-transparent-khada-garam-masala.png",
+            "description":
+                "মশলাদার গরম মশলা, রান্নায় স্বাদ ও ঘ্রাণ বৃদ্ধি করে।",
           },
         ];
+
       case 'Special Item':
         return [
           {
             "name": "খোলিসা মধু",
             "price": 120,
             "image": "assets/images/sorisha-modhu.png",
+            "description": "বিশেষ খোলিসা মধু, প্রাকৃতিক এবং সুস্বাদু।",
           },
           {
             "name": "কুমড়ো বরি",
             "price": 80,
             "image":
                 "assets/images/1cc35ba482-q8iq1pim5akvhcaq4dr2s6sw0f53373d4uuep4udjc.jpg",
+            "description": "তাজা কুমড়ো বরি, স্বাস্থ্যকর ও মজাদার।",
           },
           {
             "name": "ঘি",
             "price": 150,
             "image":
                 "assets/images/pure-tup-or-desi-ghee-also-known-as-clarified-liquid-butter-free-photo.jpg",
+            "description": "শুদ্ধ দেশি ঘি, রান্নায় স্বাদ বৃদ্ধি করে।",
           },
           {
             "name": "চালের গুড়া",
             "price": 60,
             "image":
                 "assets/images/free-from-impurities-food-grade-100-pure-whole-wheat-flour-for-making-chapati-974.jpg.jpg",
+            "description":
+                "শুদ্ধ চালের গুড়া, স্বাস্থ্যসম্মত এবং রান্নায় ব্যবহারযোগ্য।",
           },
         ];
+
       default:
         return [];
     }
@@ -190,12 +217,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget build(BuildContext context) {
     final sortOptions = [
       "Newest First",
-      "Oldest First",
       "Name A to Z",
       "Name Z to A",
       "Price High to Low",
       "Price Low to High",
-      "Express Delivery",
     ];
 
     return Scaffold(
@@ -211,282 +236,342 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ),
       drawer: CustomDrawer(
         onSelectCategory: (String category, String? option) {
-          Navigator.pop(context); // drawer close
-
-          // Force update করো
+          Navigator.pop(context);
           categoryController.updateCategory(category, option);
-
           setState(() {
             showSortPanel = false;
+            showFilterPanel = false;
           });
         },
       ),
-
-      body: Column(
+      body: Stack(
         children: [
-          // Sort & Filter Row
-          Container(
-            margin: const EdgeInsets.all(8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
-                  spreadRadius: 1,
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
+          Column(
+            children: [
+              // Sort & Filter Row
+              Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      showSortPanel = !showSortPanel;
-                    });
-                  },
-                  icon: const Icon(Icons.sort, color: Colors.black87),
-                  label: const Text("Sort"),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 1,
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                TextButton.icon(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) => FilterBottomSheet(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => setState(() {
+                        showSortPanel = true;
+                        showFilterPanel = false;
+                      }),
+                      icon: const Icon(Icons.sort, color: Colors.black87),
+                      label: const Text("Sort"),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => setState(() {
+                        showFilterPanel = true;
+                        showSortPanel = false;
+                      }),
+                      icon: const Icon(
+                        Icons.filter_list,
+                        color: Colors.black87,
+                      ),
+                      label: const Text("Filter"),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Products Grid
+              Expanded(
+                child: Obx(() {
+                  final currentCategory =
+                      categoryController.currentCategory.value;
+                  final products = getProductsForCategory(currentCategory);
+                  final sortedProducts = applySort(List.from(products));
+
+                  if (currentCategory.isEmpty)
+                    return const Center(
+                      child: Text(
+                        'কোনো ক্যাটেগরি নির্বাচিত হয়নি',
+                        style: TextStyle(fontSize: 18),
+                      ),
                     );
-                  },
-                  icon: const Icon(Icons.filter_list, color: Colors.black87),
-                  label: const Text("Filter"),
-                ),
-              ],
-            ),
+
+                  if (products.isEmpty)
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.shopping_basket_outlined,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'এই ক্যাটেগরিতে কোনো পণ্য নেই',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.75,
+                        ),
+                    itemCount: sortedProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = sortedProducts[index];
+                      return InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ProductDetailsScreen(product: product),
+                          ),
+                        ),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset(
+                                      product['image'],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                                color: Colors.grey[200],
+                                                child: const Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 50,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      product['name'],
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '৳${product['price']}',
+                                      style: const TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                        fixedSize: const Size(120, 36),
+                                        padding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        final authController =
+                                            Get.find<AuthController>();
+                                        final item = CartItem(
+                                          id: index,
+                                          name: product['name'],
+                                          category: currentCategory,
+                                          price: (product['price'] as num)
+                                              .toDouble(),
+                                          quantity: 1,
+                                          imagePath: product['image'],
+                                        );
+
+                                        if (authController.isLoggedIn.value) {
+                                          cartController.addToCart(item);
+                                          Get.to(() => CartScreen(product: {}));
+                                        } else {
+                                          authController.pendingAction = () {
+                                            cartController.addToCart(item);
+                                            Get.to(
+                                              () => CartScreen(product: {}),
+                                            );
+                                          };
+                                          Get.snackbar(
+                                            "Login Required",
+                                            "Please log in to add items to cart.",
+                                            snackPosition: SnackPosition.BOTTOM,
+                                            backgroundColor: Colors.redAccent,
+                                            colorText: Colors.white,
+                                          );
+                                        }
+                                      },
+                                      child: const Center(
+                                        child: Text(
+                                          "Add to Cart",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ),
+            ],
           ),
 
           // Sort Panel
-          if (showSortPanel)
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Sort by",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            top: showSortPanel ? 0 : -400,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 400,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    blurRadius: 10,
                   ),
-                  const SizedBox(height: 8),
-                  ...sortOptions.map((option) {
-                    return RadioListTile<String>(
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          "Sort By",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => setState(() => showSortPanel = false),
+                      ),
+                    ],
+                  ),
+                  ...sortOptions.map(
+                    (option) => RadioListTile<String>(
                       title: Text(option),
                       value: option,
                       groupValue: selectedSort,
                       onChanged: (value) {
                         setState(() {
                           selectedSort = value!;
+                          showSortPanel = false;
                         });
                       },
-                    );
-                  }).toList(),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 48),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        showSortPanel = false;
-                      });
-                    },
-                    child: const Text("Apply"),
                   ),
                 ],
               ),
             ),
+          ),
 
-          // Products Grid
-          Expanded(
-            child: Obx(() {
-              final currentCategory = categoryController.currentCategory.value;
-              print(
-                "Current Category in build: $currentCategory",
-              ); // Debug করার জন্য
-
-              if (currentCategory.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'কোনো ক্যাটেগরি নির্বাচিত হয়নি',
-                    style: TextStyle(fontSize: 18),
+          // Filter Panel
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            top: showFilterPanel ? 0 : -400,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 400,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    blurRadius: 10,
                   ),
-                );
-              }
-
-              final products = getProductsForCategory(currentCategory);
-
-              if (products.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(
-                        Icons.shopping_basket_outlined,
-                        size: 80,
-                        color: Colors.grey[400],
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          "Filter",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'এই ক্যাটেগরিতে কোনো পণ্য নেই',
-                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () =>
+                            setState(() => showFilterPanel = false),
                       ),
                     ],
                   ),
-                );
-              }
-
-              // Sort apply করো
-              List<Map<String, dynamic>> sortedProducts = List.from(products);
-              applySort(sortedProducts);
-
-              return GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.75,
-                ),
-                itemCount: sortedProducts.length,
-                itemBuilder: (context, index) {
-                  final product = sortedProducts[index];
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ProductDetailsScreen(product: product),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.asset(
-                                  product['image'],
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      color: Colors.grey[200],
-                                      child: const Icon(
-                                        Icons.image_not_supported,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  product['name'],
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '৳${product['price']}',
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                    fixedSize: const Size(140, 40),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    final authController =
-                                        Get.find<AuthController>();
-                                    final item = CartItem(
-                                      id: index,
-                                      name: product['name'],
-                                      category: currentCategory,
-                                      price: (product['price'] as num)
-                                          .toDouble(),
-                                      quantity: 1,
-                                      imagePath: product['image'],
-                                    );
-
-                                    if (authController.isLoggedIn.value){
-                                    cartController.addToCart(item);
-                                    Get.to(() => CartScreen(product: {}));
-                                  
-                                  } else {
-                                      // Login page এ যাও
-                                      authController.pendingAction = () {
-                                        cartController.addToCart(item);
-                                        Get.to(() => CartScreen(product: {}));
-                                      };
-                                      Get.snackbar(
-                                        "Login Required",
-                                        "Please log in to add items to cart.",
-                                        snackPosition: SnackPosition.BOTTOM,
-                                        backgroundColor: Colors.redAccent,
-                                        colorText: Colors.white,
-                                      );
-                                      // এখানে তোমার login page এর navigation code দাও
-                                    }
-                                  },
-                                  child: const Text("Add to Cart"),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            }),
+                  Expanded(child: FilterBottomSheet()), // আপনার filter widget
+                ],
+              ),
+            ),
           ),
         ],
       ),
