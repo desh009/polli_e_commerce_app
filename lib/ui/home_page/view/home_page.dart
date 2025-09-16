@@ -19,11 +19,13 @@ class HomePage extends StatelessWidget {
       "title": "গুড়",
       "subtitle": "খাঁটি গুড়, স্বাদের মুহূর্তের সঙ্গী",
     },
+
     {
       "image": "https://i.ibb.co/R9B3c2K/honey.jpg",
       "title": "মধু",
       "subtitle": "খাঁটি মধু, প্রকৃতির উপহার",
     },
+    
     {
       "image": "https://i.ibb.co/m8bRL1H/mustard-oil.jpg",
       "title": "তেল",
@@ -116,6 +118,7 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
+      
       drawer: CustomDrawer(
         onSelectCategory: (String category, String? option) {
           Navigator.pop(context);
