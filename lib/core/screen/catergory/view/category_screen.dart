@@ -24,7 +24,7 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  final CategoryController categoryController = Get.put(CategoryController());
+  final Category1Controller categoryController = Get.put(Category1Controller());
   final CartController cartController = Get.put(CartController());
 
   bool showSortPanel = false;

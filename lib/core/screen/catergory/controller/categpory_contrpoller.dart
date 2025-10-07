@@ -3,8 +3,8 @@ import 'package:get/get_instance/get_instance.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 
-class CategoryController extends GetxController {
-    static CategoryController get instance => Get.find<CategoryController>();
+class Category1Controller extends GetxController {
+    static Category1Controller get instance => Get.find<Category1Controller>();
 
   var selectedCategory = RxnString();
   var selectedOption = RxnString();

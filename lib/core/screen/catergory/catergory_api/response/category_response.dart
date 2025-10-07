@@ -40,4 +40,6 @@ class Category {
       "updated_at": updatedAt.toIso8601String(),
     };
   }
+
+  void operator [](String other) {}
 }
