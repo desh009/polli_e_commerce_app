@@ -1,8 +1,6 @@
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/get_instance.dart';
-import 'package:get/get_instance/src/bindings_interface.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
-import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/binder/add_to_cart_binder.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/binder/log_out_binder.dart';

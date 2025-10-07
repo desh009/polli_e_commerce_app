@@ -70,6 +70,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       default:
         return products;
     }
+    
   }
 
   /// Dummy products per category

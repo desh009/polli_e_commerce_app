@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/controller/category_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/view/category_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
-
 import 'package:polli_e_commerce_app/moduls/my_order/view/my_order_view.dart';
 import 'package:polli_e_commerce_app/moduls/my_order/bindings/my_order_bindings.dart';
 import 'package:polli_e_commerce_app/moduls/my_wishlist/view/my_wish_list_view.dart';
@@ -32,6 +32,8 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
+  final CategoryController categoryController = Get.find<CategoryController>();
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -39,8 +41,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text("Amazing Shop"),
-            accountEmail: Text("example@email.com"),
+            accountName: const Text("Amazing Shop"),
+            accountEmail: const Text("example@email.com"),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Icon(Icons.store, color: AppColors.primary, size: 36),
@@ -48,89 +50,85 @@ class _CustomDrawerState extends State<CustomDrawer> {
             decoration: BoxDecoration(color: AppColors.primary),
           ),
 
-          /// Categories with sub-items
+          // Categories
           ExpansionTile(
             leading: Icon(Icons.category, color: AppColors.primary),
-            title: Text("Categories"),
+            title: const Text("Categories"),
             children: [
-              _buildCategory(
-                context,
-                categoryName: "গুড়",
-                icon: Icons.cookie,
-                options: [
-                  "ঘোলা গুড়",
-                  "বিজ গুড়",
-                  "নারকেল গুড়",
-                  "দানাদার গুড়",
-                  "চকলেট গুড়",
-                  "পাটালি গুড়",
-                ],
-              ),
-              _buildCategory(
-                context,
-                categoryName: "তেল",
-                icon: Icons.oil_barrel,
-                options: ["নারকেল তেল", "সরিষা তেল"],
-              ),
-              _buildCategory(
-                context,
-                categoryName: "মসলা",
-                icon: Icons.restaurant_menu,
-                options: ["মরিচ", "হলুদ", "জিরা", "ধনিয়া", "গরম মশলা"],
-              ),
-              _buildCategory(
-                context,
-                categoryName: "Special Item",
-                icon: Icons.star,
-                options: ["খোলিসা মধু", "কুমড়ো বরি", "ঘি", "চালের গুড়া"],
-              ),
+              Obx(() {
+                if (categoryController.isLoading.value) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                } else if (categoryController.error.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text("Error: ${categoryController.error.value}"),
+                  );
+                } else if (categoryController.categories.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text("No categories found"),
+                  );
+                } else {
+                  return Column(
+                    children: categoryController.categories.map((category) {
+                      return _buildCategory(
+                        context,
+                        categoryName: category.title,
+                        icon: Icons.category,
+                        options: [], // Subcategory support future
+                      );
+                    }).toList(),
+                  );
+                }
+              }),
             ],
           ),
 
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.home, color: AppColors.primary),
-            title: Text("Home"),
-            onTap: () {
-              Navigator.pop(context);
-              Get.offAll(
-                () => HomePage(),
-              ); // এখানে চাইলে তোমার HomePage widget বসাও
-            },
-          ),
+          const Divider(),
 
           ListTile(
+            leading: Icon(Icons.home, color: AppColors.primary),
+            title: const Text("Home"),
+            onTap: () {
+              Navigator.pop(context);
+              Get.offAll(() => HomePage());
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.shopping_cart, color: AppColors.primary),
-            title: Text("My Orders"),
+            title: const Text("My Orders"),
             onTap: () {
               Get.to(() => MyOrderView(), binding: MyOrderBinding());
             },
           ),
           ListTile(
             leading: Icon(Icons.favorite, color: AppColors.primary),
-            title: Text("Wishlist"),
+            title: const Text("Wishlist"),
             onTap: () {
               Get.to(() => WishlistView(), binding: WishlistBinding());
             },
           ),
           ListTile(
             leading: Icon(Icons.person, color: AppColors.primary),
-            title: Text("Profile"),
+            title: const Text("Profile"),
             onTap: () {
               Get.to(() => ProfileView(), binding: ProfileBinding());
             },
           ),
           ListTile(
             leading: Icon(Icons.settings, color: AppColors.primary),
-            title: Text("Settings"),
+            title: const Text("Settings"),
             onTap: () {
               Get.to(() => SettingsView(), binding: SettingsBinding());
             },
           ),
-          Divider(),
+          const Divider(),
           ListTile(
-            leading: Icon(Icons.logout, color: Colors.red),
-            title: Text("Logout"),
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text("Logout"),
             onTap: () {
               Get.to(() => LogoutView(), binding: LogoutBinding());
             },
@@ -140,33 +138,48 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-  /// Generic method for building categories with options
+  // Category item builder
   Widget _buildCategory(
     BuildContext context, {
     required String categoryName,
     required IconData icon,
-    required List<String> options,
+    List<String>? options,
   }) {
+    if (options == null || options.isEmpty) {
+      return ListTile(
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(categoryName),
+        onTap: () {
+          print("Selected category: $categoryName");
+          if (Get.currentRoute.contains('CategoryScreen')) {
+            widget.onSelectCategory(categoryName, null);
+          } else {
+            Navigator.pop(context);
+            Get.to(
+              () => CategoryScreen(
+                key: UniqueKey(),
+                initialSelectedCategory: categoryName,
+              ),
+            );
+          }
+        },
+      );
+    }
+
+    // Subcategory support
     return ExpansionTile(
       leading: Icon(icon, color: AppColors.primary),
       title: Text(categoryName),
       children: [
-        // Individual options
         ...options.map(
           (option) => ListTile(
-            contentPadding: EdgeInsets.only(left: 72),
+            contentPadding: const EdgeInsets.only(left: 72),
             title: Text(option),
             onTap: () {
-              print(
-                "Selected individual option: $option from $categoryName",
-              ); // Debug
-
-              // Check if we're currently on CategoryScreen
+              print("Selected option: $option from $categoryName");
               if (Get.currentRoute.contains('CategoryScreen')) {
-                // ✅ Update existing screen
                 widget.onSelectCategory(categoryName, option);
               } else {
-                // ✅ Navigate to new CategoryScreen
                 Navigator.pop(context);
                 Get.to(
                   () => CategoryScreen(
@@ -178,24 +191,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
             },
           ),
         ),
-        Divider(),
-        // "See All" option
+        const Divider(),
         ListTile(
-          contentPadding: EdgeInsets.only(left: 72),
+          contentPadding: const EdgeInsets.only(left: 72),
           leading: Icon(Icons.list, size: 16, color: AppColors.primary),
           title: Text(
             "সব $categoryName দেখুন",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           onTap: () {
-            print("See all selected: $categoryName"); // Debug
-
-            // Check if we're currently on CategoryScreen
+            print("See all selected: $categoryName");
             if (Get.currentRoute.contains('CategoryScreen')) {
-              // ✅ Update existing screen
               widget.onSelectCategory(categoryName, null);
             } else {
-              // ✅ Navigate to new CategoryScreen
               Navigator.pop(context);
               Get.to(
                 () => CategoryScreen(
