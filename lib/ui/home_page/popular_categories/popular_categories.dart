@@ -22,7 +22,7 @@ class PopularCategories extends StatelessWidget {
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // ২ কলাম হবে
+        crossAxisCount: 2, 
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
         childAspectRatio: 1,

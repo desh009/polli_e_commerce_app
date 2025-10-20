@@ -32,7 +32,7 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  final CategoryController categoryController = Get.find<CategoryController>();
+  final Category1Controller categoryController = Get.find<Category1Controller>();
 
   @override
   Widget build(BuildContext context) {

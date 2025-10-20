@@ -1,50 +1,28 @@
-class SubCategory {
-  final int id;
-  final String title;
-  final int? parentId;
-  final String? image;
-  final int status;
-  final String createdAt;
-  final String updatedAt;
 
-  SubCategory({
-    required this.id,
-    required this.title,
-    this.parentId,
-    this.image,
-    required this.status,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 
-  factory SubCategory.fromJson(Map<String, dynamic> json) {
-    return SubCategory(
-      id: json['id'],
-      title: json['title'],
-      parentId: json['parent_id'],
-      image: json['image'],
-      status: json['status'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-    );
-  }
-}
+class CategoryDetailsResponse {
+  final Category category;
+  final List<Category> children;
 
-class SubCategoryResponse {
-  final SubCategory category;
-  final List<SubCategory> children;
-
-  SubCategoryResponse({
+  CategoryDetailsResponse({
     required this.category,
     required this.children,
   });
 
-  factory SubCategoryResponse.fromJson(Map<String, dynamic> json) {
-    return SubCategoryResponse(
-      category: SubCategory.fromJson(json['category']),
+  factory CategoryDetailsResponse.fromJson(Map<String, dynamic> json) {
+    return CategoryDetailsResponse(
+      category: Category.fromJson(json['category']),
       children: (json['children'] as List)
-          .map((child) => SubCategory.fromJson(child))
+          .map((childJson) => Category.fromJson(childJson))
           .toList(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'category': category.toJson(),
+      'children': children.map((child) => child.toJson()).toList(),
+    };
   }
 }

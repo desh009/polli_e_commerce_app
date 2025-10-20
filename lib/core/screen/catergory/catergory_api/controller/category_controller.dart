@@ -2,10 +2,10 @@ import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/repository/category_repository.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 
-class CategoryController extends GetxController {
+class Category1Controller extends GetxController {
   final CategoryRepository repository;
 
-  CategoryController(this.repository);
+  Category1Controller(this.repository);
 
   var categories = <Category>[].obs;
   var isLoading = false.obs;

@@ -1,19 +1,41 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:polli_e_commerce_app/core/network/api_client.dart';
 import 'package:polli_e_commerce_app/core/network/url/url.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/2nd_category_response/2nd_category_response.dart';
 
-class SubCategoryRepository {
-  Future<SubCategoryResponse> getCategoryById(int id) async {
-    final url = "${Url.baseUrl}/api/category/$id";
+class CategoryDetailsRepository {
+  final NetworkClient client;
 
-    final response = await http.get(Uri.parse(url));
+  CategoryDetailsRepository(this.client);
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      return SubCategoryResponse.fromJson(jsonData);
+  /// ক্যাটেগরি ডিটেইলস লোড করা (ক্যাটেগরি + চিলড্রেন)
+  Future<CategoryDetailsResponse> getCategoryDetails(int categoryId) async {
+    final response = await client.getRequest(Url.categoryById(categoryId));
+
+    if (response.isSuccess &&
+        response.responseData != null &&
+        response.responseData is Map<String, dynamic>) {
+      return CategoryDetailsResponse.fromJson(
+        response.responseData as Map<String, dynamic>,
+      );
     } else {
-      throw Exception("Failed to load subcategory");
+      throw Exception(response.errorMessage ?? "Failed to fetch category details");
+    }
+  }
+
+  /// শুধু চিলড্রেন ক্যাটেগরি লোড করা
+  Future<List<Category>> getCategoryChildren(int categoryId) async {
+    final response = await client.getRequest(Url.categoryById(categoryId));
+
+    if (response.isSuccess &&
+        response.responseData != null &&
+        response.responseData is Map<String, dynamic>) {
+      final data = response.responseData as Map<String, dynamic>;
+      return (data['children'] as List)
+          .map((childJson) => Category.fromJson(childJson))
+          .toList();
+    } else {
+      throw Exception(response.errorMessage ?? "Failed to fetch category children");
     }
   }
 }

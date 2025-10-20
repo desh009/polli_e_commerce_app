@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/view/category_screen.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/controller/drwaer_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 
@@ -30,10 +31,10 @@ class CartPage extends StatelessWidget {
   }
 }
 
-class DrawerControllerX extends GetxController {
-  var selectedItem = "".obs;
-  var cartCount = 0.obs; // Cart badge
-}
+// class DrawerControllerX extends GetxController {
+//   var selectedItem = "".obs;
+//   var cartCount = 0.obs; // Cart badge
+// }
 
 class HomePage extends StatelessWidget {
   final drawerController = Get.put(DrawerControllerX());

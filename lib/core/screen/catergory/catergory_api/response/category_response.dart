@@ -43,3 +43,34 @@ class Category {
 
   void operator [](String other) {}
 }
+
+/// A nested category model that supports children per API shape:
+/// {
+///   "category": { ... },
+///   "children": [ { ... }, { ... } ]
+/// }
+class CategoryWithChildren {
+  final Category category;
+  final List<Category> children;
+
+  CategoryWithChildren({
+    required this.category,
+    required this.children,
+  });
+
+  factory CategoryWithChildren.fromJson(Map<String, dynamic> json) {
+    final categoryJson = json['category'] as Map<String, dynamic>;
+    final List<dynamic> childrenJson = (json['children'] as List? ?? []);
+    return CategoryWithChildren(
+      category: Category.fromJson(categoryJson),
+      children: childrenJson.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'category': category.toJson(),
+      'children': children.map((e) => e.toJson()).toList(),
+    };
+  }
+}
