@@ -4,7 +4,6 @@ class Url {
   // 🟢 Category related
   static const String categoryList = "$baseUrl/api/category";
   static String categoryById(int id) => "$baseUrl/api/category/$id";
-
   // 🟢 Slider related
   static const String slider = "$baseUrl/api/slider";
 

@@ -3,13 +3,17 @@ import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/respons
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/2nd_category_response/2nd_category_response.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/repository/2nd_category_repository.dart';
 
-class CategoryDetailsController extends GetxController {
-  final CategoryDetailsRepository _categoryDetailsRepository;
+class Category2Controller extends GetxController {
+  final Category2Repository _categoryDetailsRepository;
 
-  CategoryDetailsController(this._categoryDetailsRepository);
+  Category2Controller(this._categoryDetailsRepository);
+
+  // Dynamic maps
+  final Map<String, int> categoryNameToId = {};
+  final Map<String, int> subCategoryNameToId = {};
 
   // Observable states
-  var categoryDetails = Rxn<CategoryDetailsResponse>();
+  var categoryDetails = Rxn<Category2Response>();
   var childrenCategories = <Category>[].obs;
   var selectedCategory = Rxn<Category>();
 
@@ -31,10 +35,15 @@ class CategoryDetailsController extends GetxController {
     try {
       isLoading(true);
       errorMessage('');
+      
+      // 🔹 এখানে আগের getCategoryByyId এর জায়গায় getCategoryDetails ব্যবহার করলাম
       final details = await _categoryDetailsRepository.getCategoryDetails(categoryId);
       categoryDetails(details);
       childrenCategories.assignAll(details.children);
       selectedCategory(details.category);
+
+      // Dynamic map update
+      _buildCategoryMaps();
     } catch (e) {
       errorMessage(e.toString());
       print('❌ Error loading category details: $e');
@@ -55,6 +64,23 @@ class CategoryDetailsController extends GetxController {
       print('❌ Error loading category children: $e');
     } finally {
       isChildrenLoading(false);
+    }
+  }
+
+  /// Dynamic map builder
+  void _buildCategoryMaps() {
+    categoryNameToId.clear();
+    subCategoryNameToId.clear();
+
+    if (categoryDetails.value != null) {
+      // parent category
+      categoryNameToId[categoryDetails.value!.category.title] =
+          categoryDetails.value!.category.id;
+
+      // children
+      for (var child in childrenCategories) {
+        subCategoryNameToId[child.title] = child.id;
+      }
     }
   }
 

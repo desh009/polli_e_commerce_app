@@ -1,17 +1,17 @@
 
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 
-class CategoryDetailsResponse {
+class Category2Response {
   final Category category;
   final List<Category> children;
 
-  CategoryDetailsResponse({
+  Category2Response({
     required this.category,
     required this.children,
   });
 
-  factory CategoryDetailsResponse.fromJson(Map<String, dynamic> json) {
-    return CategoryDetailsResponse(
+  factory Category2Response.fromJson(Map<String, dynamic> json) {
+    return Category2Response(
       category: Category.fromJson(json['category']),
       children: (json['children'] as List)
           .map((childJson) => Category.fromJson(childJson))

@@ -3,19 +3,19 @@ import 'package:polli_e_commerce_app/core/network/url/url.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/2nd_category_response/2nd_category_response.dart';
 
-class CategoryDetailsRepository {
+class Category2Repository {
   final NetworkClient client;
 
-  CategoryDetailsRepository(this.client);
+  Category2Repository(this.client);
 
   /// ক্যাটেগরি ডিটেইলস লোড করা (ক্যাটেগরি + চিলড্রেন)
-  Future<CategoryDetailsResponse> getCategoryDetails(int categoryId) async {
+  Future<Category2Response> getCategoryDetails(int categoryId) async {
     final response = await client.getRequest(Url.categoryById(categoryId));
 
     if (response.isSuccess &&
         response.responseData != null &&
         response.responseData is Map<String, dynamic>) {
-      return CategoryDetailsResponse.fromJson(
+      return Category2Response.fromJson(
         response.responseData as Map<String, dynamic>,
       );
     } else {
