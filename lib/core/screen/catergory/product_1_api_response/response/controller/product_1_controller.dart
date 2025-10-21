@@ -8,7 +8,7 @@ class ProductController extends GetxController {
   final ProductRepository repository;
 
   // ✅ Fix constructor
-  ProductController(this.repository);
+  ProductController({required this.repository});
 
   final RxList<ProductModel> products = <ProductModel>[].obs;
   final RxBool isLoading = false.obs;

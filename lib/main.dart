@@ -11,6 +11,8 @@ import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Slider_api/controller/slider_api_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Slider_api/repository/slider_api_repository.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller/2nd_category_controller.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/repository/2nd_category_repository.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/controller/drwaer_controller.dart';
 import 'package:polli_e_commerce_app/ui/splash_screen.dart';
 
@@ -36,12 +38,23 @@ Get.lazyPut<ProductRepository>(() => ProductRepository(Get.find<NetworkClient>()
   Get.put<AuthController>(AuthController(), permanent: true);
 
   /// 🔹 Repositories
-  Get.put<CategoryRepository>(CategoryRepository(apiClient), permanent: true);
+  Get.put<Category1Repository>(Category1Repository(apiClient), permanent: true);
   Get.put<SliderRepository>(
     SliderRepository(networkClient: apiClient),
     permanent: true,
   );
+// main.dart
+// Repository
+Get.lazyPut<Category2Repository>(
+  () => Category2Repository(Get.find<NetworkClient>()),
+  fenix: true,
+);
 
+// Controller
+Get.lazyPut<Category2Controller>(
+  () => Category2Controller(Get.find<Category2Repository>()),
+  fenix: true,
+);
   // ✅ Product2Repository inject
   // Get.put<Product2Repository>(
   //   Product2Repository(networkClient: Get.find<NetworkClient>()),
@@ -56,7 +69,7 @@ Get.lazyPut<ProductRepository>(() => ProductRepository(Get.find<NetworkClient>()
   // );
 
   Get.put<Category1Controller>(
-    Category1Controller(Get.find<CategoryRepository>()),
+    Category1Controller(Get.find<Category1Repository>()),
     permanent: true,
   );
   

@@ -3,10 +3,10 @@ import 'package:polli_e_commerce_app/core/network/api_response.dart';
 import 'package:polli_e_commerce_app/core/network/url/url.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 
-class CategoryRepository {
+class Category1Repository {
   final NetworkClient networkClient;
 
-  CategoryRepository(this.networkClient);
+  Category1Repository(this.networkClient);
 
   /// ---- Get All Categories ----
   Future<List<Category>> getCategories() async {

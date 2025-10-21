@@ -3,7 +3,7 @@ import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/reposit
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 
 class Category1Controller extends GetxController {
-  final CategoryRepository repository;
+  final Category1Repository repository;
 
   Category1Controller(this.repository);
 
@@ -40,6 +40,11 @@ class Category1Controller extends GetxController {
     }
   }
 
+  /// ✅ NEW METHOD: loadCategories - fetchCategories এর alias
+  Future<void> loadCategories() async {
+    await fetchCategories();
+  }
+
   void _buildCategoryMaps(List<Category> categoriesList) {
     categoryNameToId.clear();
     subCategoryNameToId.clear();
@@ -64,5 +69,26 @@ class Category1Controller extends GetxController {
   void updateCategory(String categoryName, [String? option]) {
     currentCategory.value = categoryName;
     // Optionally handle other selection logic
+  }
+
+  /// ✅ Additional helper methods
+  List<Category> get mainCategories {
+    return categories.where((category) => category.parentId == null).toList();
+  }
+
+  List<Category> get subCategories {
+    return categories.where((category) => category.parentId != null).toList();
+  }
+
+  List<Category> getSubCategoriesByParentId(int parentId) {
+    return categories.where((category) => category.parentId == parentId).toList();
+  }
+
+  Category? getCategoryById(int id) {
+    try {
+      return categories.firstWhere((category) => category.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 }
