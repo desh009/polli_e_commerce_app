@@ -10,4 +10,8 @@ class NetworkResponse {
     this.responseData,
     this.errorMessage,
   });
+
+  Map<String, dynamic> operator [](String other) {
+    return responseData ?? {};
+  }
 }
