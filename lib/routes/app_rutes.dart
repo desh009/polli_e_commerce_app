@@ -24,14 +24,16 @@ abstract class Routes {
   static const FORGOT_PASSWORD = _Paths.FORGOT_PASSWORD;
   static const CHANGE_PASSWORD = _Paths.CHANGE_PASSWORD;
   static const DASHBOARD = _Paths.DASHBOARD;
-    static const CAR_ROUTE = _Paths.DASHBOARD;
+  static const CATEGORY_SCREEN = _Paths.CATEGORY_SCREEN;
   static const MY_WISHLIST = _Paths.MY_WISHLIST;
   static const MY_ORDER = _Paths.MY_ORDER;
   static const PROFILE = _Paths.PROFILE;
   static const LOGOUT = _Paths.LOGOUT;
   static const CART = _Paths.CART;
-
-
+  
+  // ✅ নতুন Routes এড করুন
+  static const CHECKOUT = _Paths.CHECKOUT;
+  static const ORDER_SUCCESS = _Paths.ORDER_SUCCESS;
 }
 
 abstract class _Paths {
@@ -57,11 +59,14 @@ abstract class _Paths {
   static const FORGOT_PASSWORD = '/forgot-password';
   static const CHANGE_PASSWORD = '/change-password';
   static const DASHBOARD = '/dashboard';
-  static const CAR_ROUTE = '/car-route';
+  static const CATEGORY_SCREEN = '/category-screen';
   static const MY_WISHLIST = '/my-wishlist';
   static const MY_ORDER = '/my-order';
   static const PROFILE = '/profile';
   static const LOGOUT = '/logout';
   static const CART = '/cart';
-
+  
+  // ✅ নতুন Paths এড করুন
+  static const CHECKOUT = '/checkout';
+  static const ORDER_SUCCESS = '/order-success';
 }

@@ -46,9 +46,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  void _demoFill() {
-    _emailController.text = "user@example.com";
-  }
+  // void _demoFill() {
+  //   _emailController.text = "user@example.com";
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +69,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   padding: EdgeInsets.zero,
                   alignment: Alignment.centerLeft,
                 ),
-                
                 const SizedBox(height: 20),
                 
                 // Header Section
@@ -122,7 +121,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ],
     );
   }
-
+   
+   
   Widget _buildIllustration() {
     return Container(
       height: 150,

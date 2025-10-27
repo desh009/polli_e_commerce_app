@@ -632,7 +632,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       category: categoryController.currentCategory.value,
       price: product.finalPrice, // ✅ নতুন model property
       quantity: 1,
-      imagePath: product.image, // ✅ নতুন model property
+      imagePath: product.image, discount:0, // ✅ নতুন model property
     );
 
     if (authController.isLoggedIn.value) {

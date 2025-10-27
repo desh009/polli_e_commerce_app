@@ -3,6 +3,8 @@ import 'package:get/get_instance/get_instance.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
+import 'package:polli_e_commerce_app/core/screen/check_out_screen/binder/chek_out_binder.dart';
+import 'package:polli_e_commerce_app/core/screen/check_out_screen/view/chek_out_view.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/binder/log_out_binder.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/view/logout_view.dart';
 import 'package:polli_e_commerce_app/moduls/main_layout/bindings/main_layout_bindings.dart';
@@ -39,6 +41,14 @@ class AppPages {
     //   page: () => const AuthView(),
     //   binding: AuthBinding(),
     // ),
+    // main.dart এর GetPages তালিকায় এড করুন
+    GetPage(
+      name: _Paths.CHECKOUT,
+      page: () => CheckoutScreen(),
+      binding: CheckoutBinding(),
+    ),
+    // lib/routes/app_pages.dart
+
     GetPage(
       name: _Paths.MAIN_LAYOUT,
       page: () => MainLayoutView(),
@@ -83,6 +93,14 @@ class AppPages {
         Get.lazyPut<CartController>(() => CartController());
       }),
     ),
+    // main.dart এ এই লাইনগুলো এড করুন
+
+// GetMaterialApp এর মধ্যে
+GetPage(
+  name: '/checkout',
+  page: () => CheckoutScreen(),
+  binding: CheckoutBinding(),
+),
 
     // GetPage(
     // //   name: _Paths.FORGOT_PASSWORD,

@@ -43,7 +43,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       category: productController.mainCategoryName,
       price: double.parse(product.price),
       quantity: 1,
-      imagePath: product.fixedImageUrl,
+      imagePath: product.fixedImageUrl, discount: 0,
     );
 
     // ✅ যদি user logged in থাকে

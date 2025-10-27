@@ -24,4 +24,7 @@ class Url {
   static const String createOrder = "$baseUrl/api/order";
   static String orderById(int id) => "$baseUrl/api/order/$id";
   static const String orderHistory = "$baseUrl/api/orders";
+
+  // ✅ Checkout endpoint এড করুন
+  static const String checkout = "$baseUrl/api/checkout";
 }

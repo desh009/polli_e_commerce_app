@@ -9,6 +9,8 @@ import 'package:polli_e_commerce_app/core/screen/catergory/controller/categpory_
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/controller/product_1_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/repository/product_2_repository.dart';
+import 'package:polli_e_commerce_app/core/screen/check_out_screen/controller/chek_out_controller.dart';
+import 'package:polli_e_commerce_app/core/screen/check_out_screen/repository/chek_out_repository.dart';
 import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
 
 // ✅ ProductController এবং Repository import করুন
@@ -39,6 +41,7 @@ void main() async {
   );
   Get.put<NetworkClient>(apiClient, permanent: true);
   print('✅ NetworkClient registered');
+  Get.lazyPut<OrderRepository>(() => OrderRepository());
 
   /// 🔹 2. Auth Controller
   Get.put(AuthController(), permanent: true);
@@ -59,6 +62,10 @@ void main() async {
   Get.put<BaseProductRepository>(ProductRepository(apiClient), permanent: true);
   print('✅ BaseProductRepository registered');
 
+    Get.lazyPut<CheckoutController>(() => CheckoutController());
+
+  Get.put(CheckoutController(), permanent: true);
+  print('✅ CheckoutController registered');
   // ✅ Product2 Repository (যদি থাকে)
   // Get.put<BaseProductRepository>(ProductRepository(networkClient), permanent: true);
   // print('✅ BaseProductRepository registered');
