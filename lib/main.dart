@@ -75,7 +75,7 @@ void main() async {
     CheckoutController(
       checkoutRepository: Get.find<CheckoutRepository>(),
       cartController: Get.find<CartController>(),
-      repository: Get.find<CheckoutRepository>(),
+      
     ),
     permanent: true,
   );

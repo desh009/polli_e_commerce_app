@@ -8,13 +8,18 @@ class CheckoutBinding implements Bindings {
   @override
   void dependencies() {
     // ✅ Repository register করুন
-    Get.lazyPut<CheckoutRepository>(() => CheckoutRepository(
-      networkClient: Get.find(), // আপনার NetworkClient
-    ));
-    
+    Get.lazyPut<CheckoutRepository>(
+      () => CheckoutRepository(
+        networkClient: Get.find(), // আপনার NetworkClient
+      ),
+    );
+
     // ✅ Controller register করুন - সঠিক dependency সহ
-    Get.lazyPut<CheckoutController>(() => CheckoutController(
-      checkoutRepository: Get.find<CheckoutRepository>(),
-      cartController: Get.find<CartController>(), repository: Get.find<CheckoutRepository>(),));
+    Get.lazyPut<CheckoutController>(
+      () => CheckoutController(
+        checkoutRepository: Get.find<CheckoutRepository>(),
+        cartController: Get.find<CartController>(),
+      ),
+    );
   }
 }

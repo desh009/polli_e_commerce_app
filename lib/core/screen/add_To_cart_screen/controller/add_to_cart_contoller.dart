@@ -10,16 +10,26 @@ class CartController extends GetxController {
       cartItems.fold(0, (sum, item) => sum + item.totalPrice);
 
   void addToCart(CartItem item) {
-    final existingItem =
-        cartItems.firstWhereOrNull((element) => element.id == item.id);
-
-    if (existingItem != null) {
-      existingItem.quantity += item.quantity;
+    // যদি একই product আগে থেকে থাকে, quantity বাড়াও
+    int index = cartItems.indexWhere((i) => i.id == item.id);
+    if (index != -1) {
+      cartItems[index].quantity += item.quantity;
       cartItems.refresh();
     } else {
       cartItems.add(item);
     }
   }
+
+  void removeFromCart(CartItem item) {
+    cartItems.remove(item);
+  }
+
+  double get subtotal =>
+      cartItems.fold(0, (sum, i) => sum + i.price * i.quantity);
+
+  double get deliveryCharge => cartItems.isEmpty ? 0 : 135;
+
+  double get grandTotal => subtotal + deliveryCharge;
 
   void updateQuantity(int id, int newQuantity) {
     final item = cartItems.firstWhereOrNull((e) => e.id == id);

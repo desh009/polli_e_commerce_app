@@ -36,7 +36,6 @@ class CheckoutScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // 🏠 Delivery Address
             Container(
               padding: const EdgeInsets.all(12),
@@ -59,7 +58,9 @@ class CheckoutScreen extends StatelessWidget {
                               ? controller.customerName.value
                               : 'Desh Bala',
                           style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         Text(
                           controller.phone.value.isNotEmpty
@@ -108,7 +109,10 @@ class CheckoutScreen extends StatelessWidget {
                                 width: 70,
                                 height: 70,
                                 color: Colors.grey[200],
-                                child: Icon(Icons.shopping_bag, color: Colors.grey[400]),
+                                child: Icon(
+                                  Icons.shopping_bag,
+                                  color: Colors.grey[400],
+                                ),
                               );
                             },
                           ),
@@ -123,24 +127,30 @@ class CheckoutScreen extends StatelessWidget {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '৳${item.price}',
                                 style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Text('Qty: ${item.quantity}',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 12)),
+                        Text(
+                          'Qty: ${item.quantity}',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -161,9 +171,10 @@ class CheckoutScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('Delivery Option',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(
+                    'Delivery Option',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                   SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -173,8 +184,10 @@ class CheckoutScreen extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 4),
-                  Text('Get by 5–10 Nov',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    'Get by 5–10 Nov',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -189,18 +202,32 @@ class CheckoutScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey.shade300),
               ),
-              child: Obx(() => Column(
-                    children: [
-                      _summaryRow('Subtotal',
-                          '৳${controller.totalPrice.value.toStringAsFixed(2)}'),
-                      _summaryRow('Shipping Fee',
-                          '৳${controller.deliveryCharge.value.toStringAsFixed(2)}'),
-                      const Divider(),
-                      _summaryRow('Total',
-                          '৳${controller.grandTotal.toStringAsFixed(2)}',
-                          isTotal: true),
-                    ],
-                  )),
+              child: Obx(
+                () => Column(
+                  children: [
+                    // Subtotal - getter, তাই .value লাগবে না
+                    _summaryRow(
+                      'Subtotal',
+                      '৳${controller.totalPrice.toStringAsFixed(2)}',
+                    ),
+
+                    // Shipping Fee - RxDouble, তাই .value ব্যবহার
+                    _summaryRow(
+                      'Shipping Fee',
+                      '৳${controller.deliveryCharge.value.toStringAsFixed(2)}',
+                    ),
+
+                    const Divider(),
+
+                    // Total - getter, তাই .value লাগবে না
+                    _summaryRow(
+                      'Total',
+                      '৳${controller.grandTotal.toStringAsFixed(2)}',
+                      isTotal: true,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -226,34 +253,47 @@ class CheckoutScreen extends StatelessWidget {
                 child: Text(
                   'Total: ৳${controller.grandTotal.toStringAsFixed(2)}',
                   style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               ElevatedButton(
-                onPressed: controller.isButtonLoading.value // ✅ .value যোগ করুন
+                onPressed:
+                    controller
+                        .isButtonLoading
+                        .value // ✅ .value যোগ করুন
                     ? null
                     : () => controller.placeOrder(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: controller.isButtonLoading.value // ✅ .value যোগ করুন
+                child:
+                    controller
+                        .isButtonLoading
+                        .value // ✅ .value যোগ করুন
                     ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2),
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
                       )
                     : const Text(
                         'Place Order',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.white),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
               ),
             ],
@@ -269,16 +309,20 @@ class CheckoutScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(
-                  fontSize: isTotal ? 16 : 14,
-                  fontWeight:
-                      isTotal ? FontWeight.bold : FontWeight.normal)),
-          Text(value,
-              style: TextStyle(
-                  fontSize: isTotal ? 16 : 14,
-                  fontWeight:
-                      isTotal ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
