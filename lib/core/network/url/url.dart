@@ -4,6 +4,7 @@ class Url {
   // 🟢 Category related
   static const String categoryList = "$baseUrl/api/category";
   static String categoryById(int id) => "$baseUrl/api/category/$id";
+
   // 🟢 Slider related
   static const String slider = "$baseUrl/api/slider";
 
@@ -11,8 +12,9 @@ class Url {
   static const String productList = "$baseUrl/api/product";
   static String productById(int id) => "$baseUrl/api/product/$id";
 
-  // 🔥 Add this line (Category wise products)
-  static String productsByCategory(int categoryId) => "$baseUrl/api/category/$categoryId/products";
+  // ✅ Corrected Category-wise products endpoint
+  static String productsByCategory(int categoryId) =>
+      "$baseUrl/api/product?category_id=$categoryId";
 
   // 🟢 Brand related (if needed)
   static const String brandList = "$baseUrl/api/brand";
@@ -22,4 +24,7 @@ class Url {
   static const String createOrder = "$baseUrl/api/order";
   static String orderById(int id) => "$baseUrl/api/order/$id";
   static const String orderHistory = "$baseUrl/api/orders";
+
+  // ✅ Checkout endpoint এড করুন
+  static const String checkout = "$baseUrl/api/checkout";
 }

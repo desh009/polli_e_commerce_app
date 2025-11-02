@@ -15,7 +15,9 @@ class LogoutView extends GetView<LogoutController> {
       body: Center(
         child: Obx(() {
           return controller.isLoggingOut.value
-              ? const CircularProgressIndicator()
+              ? const CircularProgressIndicator(
+            
+              )
               : ElevatedButton.icon(
                   onPressed: controller.logout,
                   icon: const Icon(Icons.logout),

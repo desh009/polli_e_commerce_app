@@ -1,119 +1,87 @@
-// import 'package:get/get.dart';
-// import 'package:logger/logger.dart';
-// import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/repository/product_2_repository.dart';
-// import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_response.dart';
+// lib/core/controllers/product_detail_controller.dart
 
-// class Product2Controller extends GetxController {
-//   final Product2Repository repository;
-//   final Logger _logger = Logger();
+import 'package:get/get.dart';
 
-//   Product2Controller({required this.repository});
+import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_response.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/repository/product_2_repository.dart';
 
-//   final RxList<ProductModel> products = <ProductModel>[].obs;
-//   final Rx<ProductModel?> selectedProduct = Rx<ProductModel?>(null);
-//   final RxBool isLoading = false.obs;
-//   final RxString errorMessage = ''.obs;
+class ProductDetailController extends GetxController {
+  final BaseProductDetailRepository _repository;
 
-//   // 🔹 সব প্রোডাক্ট লোড করা
-//   Future<void> loadAllProducts() async {
-//     _logger.i("📦 Loading all products...");
-//     try {
-//       isLoading.value = true;
-//       final data = await repository.fetchAllProducts();
-//       products.assignAll(data);
-//       _logger.i("✅ Total products loaded: ${data.length}");
-//     } catch (e) {
-//       errorMessage.value = e.toString();
-//       _logger.e("❌ Failed to load all products: $e");
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
+  ProductDetailController({required BaseProductDetailRepository repository})
+      : _repository = repository;
 
-//   // 🔹 আইডি দিয়ে প্রোডাক্ট লোড করা
-//   Future<void> loadProductById(int id) async {
-//     _logger.i("🔎 Loading product by ID: $id");
-//     try {
-//       isLoading.value = true;
-//       final product = await repository.fetchProductById(id);
-//       selectedProduct.value = product;
-//       _logger.i("✅ Product loaded: ${product.title}");
-//     } catch (e) {
-//       errorMessage.value = e.toString();
-//       _logger.e("❌ Failed to load product by ID $id: $e");
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
+  // State
+  final product = Rxn<SingleProductModel>();
+  final isLoading = false.obs;
+  final errorMessage = ''.obs;
 
-//   // 🔹 ক্যাটাগরি অনুযায়ী প্রোডাক্ট লোড করা
-//   Future<void> loadProductsByCategory(int categoryId) async {
-//     _logger.i("🧩 Loading products by category ID: $categoryId");
-//     try {
-//       isLoading.value = true;
-//       final data = await repository.fetchProductsByCategory(categoryId);
-//       products.assignAll(data);
-//       _logger.i("✅ Category $categoryId → ${data.length} products loaded");
-//     } catch (e) {
-//       errorMessage.value = e.toString();
-//       _logger.e("❌ Failed to load products by category $categoryId: $e");
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
+  // Getters
+  bool get hasProduct => product.value != null;
+  bool get hasError => errorMessage.value.isNotEmpty;
+  SingleProductModel? get currentProduct => product.value;
 
-//   // 🔹 নতুন প্রোডাক্ট তৈরি
-//   Future<void> createProduct(Map<String, dynamic> body) async {
-//     _logger.i("🆕 Creating new product...");
-//     try {
-//       isLoading.value = true;
-//       final product = await repository.createProduct(body);
-//       products.add(product);
-//       _logger.i("✅ Product created: ${product.title}");
-//     } catch (e) {
-//       errorMessage.value = e.toString();
-//       _logger.e("❌ Failed to create product: $e");
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
+  @override
+  void onInit() {
+    super.onInit();
+    // Don't auto-load, let screens control when to load
+  }
 
-//   // 🔹 প্রোডাক্ট আপডেট
-//   Future<void> updateProduct(int id, Map<String, dynamic> body) async {
-//     _logger.i("✏️ Updating product (ID $id)...");
-//     try {
-//       isLoading.value = true;
-//       final updated = await repository.updateProduct(id, body);
-//       final index = products.indexWhere((p) => p.id == id);
-//       if (index != -1) {
-//         products[index] = updated;
-//         _logger.i("✅ Product updated: ${updated.title}");
-//       } else {
-//         _logger.w("⚠️ Product not found in list (ID: $id)");
-//       }
-//     } catch (e) {
-//       errorMessage.value = e.toString();
-//       _logger.e("❌ Failed to update product ID $id: $e");
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
+  // Load product details
+  Future<void> loadProductDetail(int productId) async {
+    if (isLoading.value) return;
+    
+    isLoading.value = true;
+    errorMessage.value = '';
 
-//   // 🔹 প্রোডাক্ট ডিলিট
-//   Future<void> deleteProduct(int id) async {
-//     _logger.i("🗑️ Deleting product (ID: $id)...");
-//     try {
-//       isLoading.value = true;
-//       final success = await repository.deleteProduct(id);
-//       if (success) {
-//         products.removeWhere((p) => p.id == id);
-//         _logger.i("✅ Product deleted successfully (ID: $id)");
-//       }
-//     } catch (e) {
-//       errorMessage.value = e.toString();
-//       _logger.e("❌ Failed to delete product ID $id: $e");
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
-// }
+    try {
+      final productDetail = await _repository.getProductDetail(productId);
+      product.value = productDetail;
+      print('✅ Product loaded successfully: ${productDetail.title}');
+    } catch (e) {
+      errorMessage.value = 'Failed to load product: ${e.toString()}';
+      print('❌ Error loading product: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Refresh product data
+  Future<void> refreshProduct(int productId) async {
+    await loadProductDetail(productId);
+  }
+
+  // Clear current product
+  void clearProduct() {
+    product.value = null;
+    errorMessage.value = '';
+  }
+
+  // Check if product is in stock
+  bool get isProductInStock {
+    return product.value?.isInStock ?? false;
+  }
+
+  // Get final price with discount
+  String get displayPrice {
+    final currentProduct = product.value;
+    if (currentProduct == null) return '৳0.00';
+    
+    return currentProduct.hasDiscount 
+        ? currentProduct.formattedDiscountPrice
+        : currentProduct.formattedPrice;
+  }
+
+  // Get main category name
+  String get mainCategoryName {
+    final categories = product.value?.categories;
+    if (categories == null || categories.isEmpty) return '';
+    return categories.first.title;
+  }
+
+  @override
+  void onClose() {
+    clearProduct();
+    super.onClose();
+  }
+}

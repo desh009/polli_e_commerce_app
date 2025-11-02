@@ -1,16 +1,89 @@
-// lib/core/models/product_model.dart
+import 'dart:convert';
+
+class ProductApiResponse {
+  final String category;
+  final ProductList products;
+
+  ProductApiResponse({
+    required this.category,
+    required this.products,
+  });
+
+  factory ProductApiResponse.fromJson(Map<String, dynamic> json) {
+    return ProductApiResponse(
+      category: json['category'] ?? '',
+      products: ProductList.fromJson(json['products']),
+    );
+  }
+}
+
+class ProductList {
+  final int currentPage;
+  final List<ProductModel> data;
+  final String firstPageUrl;
+  final int from;
+  final int lastPage;
+  final String lastPageUrl;
+  final List<PaginationLink> links;
+  final String? nextPageUrl;
+  final String path;
+  final int perPage;
+  final String? prevPageUrl;
+  final int to;
+  final int total;
+
+  ProductList({
+    required this.currentPage,
+    required this.data,
+    required this.firstPageUrl,
+    required this.from,
+    required this.lastPage,
+    required this.lastPageUrl,
+    required this.links,
+    this.nextPageUrl,
+    required this.path,
+    required this.perPage,
+    this.prevPageUrl,
+    required this.to,
+    required this.total,
+  });
+
+  factory ProductList.fromJson(Map<String, dynamic> json) {
+    return ProductList(
+      currentPage: json['current_page'] ?? 1,
+      data: (json['data'] as List<dynamic>?)
+              ?.map((item) => ProductModel.fromJson(item))
+              .toList() ??
+          [],
+      firstPageUrl: json['first_page_url'] ?? '',
+      from: json['from'] ?? 0,
+      lastPage: json['last_page'] ?? 1,
+      lastPageUrl: json['last_page_url'] ?? '',
+      links: (json['links'] as List<dynamic>?)
+              ?.map((item) => PaginationLink.fromJson(item))
+              .toList() ??
+          [],
+      nextPageUrl: json['next_page_url'],
+      path: json['path'] ?? '',
+      perPage: json['per_page'] ?? 15,
+      prevPageUrl: json['prev_page_url'],
+      to: json['to'] ?? 0,
+      total: json['total'] ?? 0,
+    );
+  }
+}
 
 class ProductModel {
   final int id;
   final String title;
   final String image;
-  final String categoryId; // API তে "|6|" আসে, তাই String রাখা ঠিক আছে ✅
+  final String categoryId;
   final int brandId;
-  final String purchasePrice;
-  final String price;
-  final String discount;
-  final String discountPercent;
-  final String discountPrice;
+  final double purchasePrice;
+  final double price;
+  final double discount;
+  final double discountPercent;
+  final double discountPrice;
   final int discountType;
   final int unitType;
   final int quantity;
@@ -22,9 +95,9 @@ class ProductModel {
   final String? description;
   final String indoorSerial;
   final String outdoorSerial;
-  final String createdAt;
-  final String updatedAt;
-  final List<Category> categories;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final List<ProductCategory> categories;
 
   ProductModel({
     required this.id,
@@ -58,13 +131,13 @@ class ProductModel {
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
       image: json['image'] ?? '',
-      categoryId: json['category_id']?.toString() ?? '', // ✅ fixed (ensure string)
+      categoryId: json['category_id'] ?? '',
       brandId: json['brand_id'] ?? 0,
-      purchasePrice: json['purchase_price'] ?? '0.00',
-      price: json['price'] ?? '0.00',
-      discount: json['discount'] ?? '0.00',
-      discountPercent: json['discount_percent'] ?? '0.00',
-      discountPrice: json['discount_price'] ?? '0.00',
+      purchasePrice: _parseDouble(json['purchase_price']),
+      price: _parseDouble(json['price']),
+      discount: _parseDouble(json['discount']),
+      discountPercent: _parseDouble(json['discount_percent']),
+      discountPrice: _parseDouble(json['discount_price']),
       discountType: json['discount_type'] ?? 0,
       unitType: json['unit_type'] ?? 0,
       quantity: json['quantity'] ?? 0,
@@ -76,104 +149,73 @@ class ProductModel {
       description: json['description'],
       indoorSerial: json['indoor_serial'] ?? '',
       outdoorSerial: json['outdoor_serial'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
-      categories: (json['categories'] as List? ?? [])
-          .map((category) => Category.fromJson(category))
-          .toList(),
+      createdAt: _parseDateTime(json['created_at']),
+      updatedAt: _parseDateTime(json['updated_at']),
+      categories: (json['categories'] as List<dynamic>?)
+              ?.map((item) => ProductCategory.fromJson(item))
+              .toList() ??
+          [],
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'image': image,
-      'category_id': categoryId,
-      'brand_id': brandId,
-      'purchase_price': purchasePrice,
-      'price': price,
-      'discount': discount,
-      'discount_percent': discountPercent,
-      'discount_price': discountPrice,
-      'discount_type': discountType,
-      'unit_type': unitType,
-      'quantity': quantity,
-      'sku': sku,
-      'status': status,
-      'total_sell': totalSell,
-      'availability': availability,
-      'stockable': stockable,
-      'description': description,
-      'indoor_serial': indoorSerial,
-      'outdoor_serial': outdoorSerial,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
-      'categories': categories.map((category) => category.toJson()).toList(),
-    };
-  }
-
-  // ✅ Helper methods
-  double get finalPrice {
-    final basePrice = double.tryParse(price) ?? 0.0;
-    final discountValue = double.tryParse(discountPrice) ?? 0.0;
-    return basePrice - discountValue;
-  }
-
-  bool get hasDiscount => (double.tryParse(discountPrice) ?? 0.0) > 0;
-
-  bool get inStock => quantity > 0 && availability == 1;
-
-  String get formattedPrice => '৳$price';
-
-  String get formattedFinalPrice => '৳${finalPrice.toStringAsFixed(2)}';
-
-  String get imageUrl => image; // ✅ image already has full URL
-
-  // ✅ category_id like "|6|" → [6]
-  List<int> get parsedCategoryIds {
-    try {
-      if (categoryId.contains('|')) {
-        return categoryId
-            .split('|')
-            .where((part) => part.isNotEmpty)
-            .map((part) => int.tryParse(part) ?? 0)
-            .where((id) => id > 0)
-            .toList();
-      } else {
-        final id = int.tryParse(categoryId) ?? 0;
-        return id > 0 ? [id] : [];
-      }
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Category? get primaryCategory =>
-      categories.isNotEmpty ? categories.first : null;
-
-  String get unitTypeText {
+  // Helper Methods
+  double get finalPrice => discountPrice > 0 ? discountPrice : price;
+  
+  bool get hasDiscount => discountPrice > 0 && discountPrice < price;
+  
+  bool get isInStock => availability == 1 && quantity > 0;
+  
+  String get unitText {
     switch (unitType) {
       case 2:
-        return 'গ্রাম';
-      case 8:
-        return 'লিটার';
+        return '$quantity গ্রাম';
       default:
-        return 'পিস';
+        return '$quantity পিস';
     }
+  }
+  
+  String get categoryName => categories.isNotEmpty ? categories.first.title : '';
+  
+  // For backward compatibility with old code
+  String get imageUrl => image;
+  bool get inStock => isInStock;
+  String get unitTypeText => unitText;
+  String get formattedPrice => '৳${price.toStringAsFixed(2)}';
+  String get formattedFinalPrice => '৳${finalPrice.toStringAsFixed(2)}';
+  ProductCategory? get primaryCategory => categories.isNotEmpty ? categories.first : null;
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        return DateTime.now();
+      }
+    }
+    return DateTime.now();
   }
 }
 
-class Category {
+class ProductCategory {
   final int id;
   final String title;
   final int parentId;
   final String image;
   final int status;
-  final String createdAt;
-  final String updatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  Category({
+  ProductCategory({
     required this.id,
     required this.title,
     required this.parentId,
@@ -183,33 +225,35 @@ class Category {
     required this.updatedAt,
   });
 
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
+  factory ProductCategory.fromJson(Map<String, dynamic> json) {
+    return ProductCategory(
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
       parentId: json['parent_id'] ?? 0,
       image: json['image'] ?? '',
       status: json['status'] ?? 0,
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
+      createdAt: ProductModel._parseDateTime(json['created_at']),
+      updatedAt: ProductModel._parseDateTime(json['updated_at']),
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'parent_id': parentId,
-      'image': image,
-      'status': status,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
-    };
-  }
+class PaginationLink {
+  final String? url;
+  final String label;
+  final bool active;
 
-  // ✅ image path fix
-  String get imageUrl {
-    if (image.startsWith('http')) return image;
-    return 'https://inventory.growtech.com.bd/${image.startsWith('/') ? image.substring(1) : image}';
+  PaginationLink({
+    this.url,
+    required this.label,
+    required this.active,
+  });
+
+  factory PaginationLink.fromJson(Map<String, dynamic> json) {
+    return PaginationLink(
+      url: json['url'],
+      label: json['label'] ?? '',
+      active: json['active'] ?? false,
+    );
   }
 }

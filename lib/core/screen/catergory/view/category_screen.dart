@@ -5,8 +5,7 @@ import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/a
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/controller/category_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/controller/product_1_controller.dart';
-import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/product_1_response.dart'
-    hide Category;
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/product_1_response.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/repository/product_1_repository.dart';
 import 'package:polli_e_commerce_app/core/screen/product_screen.dart';
 import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
@@ -14,9 +13,12 @@ import 'package:polli_e_commerce_app/core/screen/filter_bottom_sheet_screen.dart
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/2nd_category_model/2nd_category_model.dart';
 
-// ✅ Category2 Controller import
+// Category2 Controller import
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller/2nd_category_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/repository/2nd_category_repository.dart';
+
+// Category1 Repository import
+import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/repository/category_repository.dart';
 
 class CategoryScreen extends StatefulWidget {
   final String? initialSelectedOption;
@@ -36,16 +38,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
   late final Category1Controller categoryController;
   late final CartController cartController;
   late final ProductController productController;
-  late final Category2Controller
-  category2Controller; // ✅ শুধু Category2Controller
+  late final Category2Controller category2Controller;
 
-  // Reactive panels
-  var showSortPanel = false.obs;
-  var showFilterPanel = false.obs;
-  var selectedSort = "Price Low to High".obs;
+  // UI State
+  bool showSortPanel = false;
+  bool showFilterPanel = false;
+  String selectedSort = "Price Low to High";
 
-  // ✅ Dynamic Category Mapping
-  final RxMap<String, int> categoryNameToId = <String, int>{}.obs;
+  // Category Mapping
+  final Map<String, int> categoryNameToId = {};
 
   @override
   void initState() {
@@ -53,33 +54,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
     _initializeControllers();
     _setupCategoryMapping();
 
-    print('🔄 CategoryScreen initialized with Category2Controller');
-
-    // Observe category changes from Category1Controller
-    ever(categoryController.currentCategory, (String category) {
-      if (category.isNotEmpty) {
-        print('🎯 Category changed to: $category');
-        _loadProductsForCategory(category);
-        _loadCategoryDetails(category);
-      }
-    });
-
-    // ✅ Category2Controller changes observe করুন
-    ever(category2Controller.selectedCategory, (Category2? selectedCategory) {
-      if (selectedCategory != null) {
-        print('🎯 Category2 selection changed: ${selectedCategory.title}');
-        _syncCategoryMappingFromCategory2();
-      }
-    });
-
     // Initial category load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final initialCategory = widget.initialSelectedCategory ?? '';
       if (initialCategory.isNotEmpty) {
-        print('🚀 Initial category: $initialCategory');
         _handleInitialCategory(initialCategory);
       } else {
-        // Default category
         categoryController.updateCategory('মসলা', null);
       }
     });
@@ -90,8 +70,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
     if (Get.isRegistered<Category1Controller>()) {
       categoryController = Get.find<Category1Controller>();
     } else {
+      final categoryRepository = Category1Repository(Get.find<NetworkClient>());
       categoryController = Get.put(
-        Category1Controller(Get.find()),
+        Category1Controller(categoryRepository),
         permanent: true,
       );
     }
@@ -114,7 +95,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       );
     }
 
-    // ✅ Category2 Controller - শুধু এই controller টি
+    // Category2 Controller
     if (Get.isRegistered<Category2Controller>()) {
       category2Controller = Get.find<Category2Controller>();
     } else {
@@ -126,116 +107,49 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }
   }
 
-  /// ✅ Dynamic Category Mapping Setup
   void _setupCategoryMapping() {
-    // Observe categories from Category1Controller
-    ever(
-      categoryController.categories,
-      (List<Category> categories) {
-            _updateCategoryMappingFromCategory1(categories);
-          }
-          as WorkerCallback<List<Category>>,
-    );
-
-    // Observe children from Category2Controller
-    ever(category2Controller.childrenCategories, (List<Category2> children) {
-      _syncCategoryMappingFromCategory2();
+    // Observe category changes
+    ever(categoryController.currentCategory, (String category) {
+      if (category.isNotEmpty) {
+        _loadProductsForCategory(category);
+        _loadCategoryDetails(category);
+      }
     });
 
-    // Initial sync from existing data
+    // Initial sync
     _updateCategoryMappingFromCategory1(categoryController.categories);
-    _syncCategoryMappingFromCategory2();
   }
 
-  /// ✅ Update Mapping from Category1Controller
   void _updateCategoryMappingFromCategory1(List<Category> categories) {
     categoryNameToId.clear();
-
     for (var category in categories) {
       categoryNameToId[category.title] = category.id;
-      print(
-        '🗺️ [Category1] Added to mapping: ${category.title} -> ${category.id}',
-      );
-    }
-
-    print('📊 Total categories in mapping: ${categoryNameToId.length}');
-  }
-
-  /// ✅ Update Mapping from Category2Controller
-  void _syncCategoryMappingFromCategory2() {
-    if (category2Controller.hasCategory) {
-      // Add parent category from Category2
-      final parentCategory = category2Controller.parentCategory;
-      if (parentCategory != null) {
-        categoryNameToId[parentCategory.title] = parentCategory.id;
-        print(
-          '🗺️ [Category2] Added parent: ${parentCategory.title} -> ${parentCategory.id}',
-        );
-      }
-
-      // Add children categories from Category2
-      for (var child in category2Controller.allChildren) {
-        categoryNameToId[child.title] = child.id;
-        print('🗺️ [Category2] Added child: ${child.title} -> ${child.id}');
-      }
-
-      print(
-        '📊 Updated mapping from Category2. Total: ${categoryNameToId.length}',
-      );
     }
   }
 
-  /// ✅ Get Category ID by Name (Dynamic - সব সোর্স চেক করে)
   int? _getCategoryIdByName(String categoryName) {
-    // First check in our dynamic mapping
+    // Check in mapping first
     if (categoryNameToId.containsKey(categoryName)) {
-      final id = categoryNameToId[categoryName];
-      print('🎯 Found in dynamic mapping: $categoryName -> $id');
-      return id;
+      return categoryNameToId[categoryName];
     }
 
-    // Fallback to Category1Controller
-    final idFromController = categoryController.getCategoryIdByName(
-      categoryName,
-    );
-    if (idFromController != null) {
-      print(
-        '🎯 Found in Category1Controller: $categoryName -> $idFromController',
-      );
-      // Add to our mapping for future use
-      categoryNameToId[categoryName] = idFromController;
-      return idFromController;
-    }
+    // Fallback to controllers
+    final idFromController = categoryController.getCategoryIdByName(categoryName);
+    if (idFromController != null) return idFromController;
 
-    // Fallback to Category2Controller
-    final idFromCategory2 = category2Controller.getCategoryIdByName(
-      categoryName,
-    );
-    if (idFromCategory2 != null) {
-      print(
-        '🎯 Found in Category2Controller: $categoryName -> $idFromCategory2',
-      );
-      categoryNameToId[categoryName] = idFromCategory2;
-      return idFromCategory2;
-    }
+    final idFromCategory2 = category2Controller.getCategoryIdByName(categoryName);
+    if (idFromCategory2 != null) return idFromCategory2;
 
-    print('❌ Category ID not found for: $categoryName');
     return null;
   }
 
   void _handleInitialCategory(String categoryName) {
     final categoryId = _getCategoryIdByName(categoryName);
-
     if (categoryId != null) {
-      print('✅ Found category: $categoryName (ID: $categoryId)');
-      categoryController.updateCategory(
-        categoryName,
-        widget.initialSelectedOption,
-      );
+      categoryController.updateCategory(categoryName, widget.initialSelectedOption);
       productController.loadProductsByCategory(categoryId);
       _loadCategoryDetails(categoryName);
     } else {
-      print('❌ Category not found: $categoryName');
       Get.snackbar(
         'ত্রুটি',
         '$categoryName ক্যাটেগরির জন্য আইডি পাওয়া যায়নি',
@@ -243,22 +157,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
         backgroundColor: Colors.orange,
         colorText: Colors.white,
       );
-
-      // Fallback to default category
       categoryController.updateCategory('মসলা', null);
     }
   }
 
   void _loadProductsForCategory(String category) {
-    print('🔄 Loading products for category: $category');
-
     final categoryId = _getCategoryIdByName(category);
-
     if (categoryId != null) {
-      print('✅ Using category ID: $categoryId');
       productController.loadProductsByCategory(categoryId);
     } else {
-      print('❌ Category ID not found for: $category');
       Get.snackbar(
         'ত্রুটি',
         '$category ক্যাটেগরির জন্য আইডি পাওয়া যায়নি',
@@ -269,22 +176,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }
   }
 
-  /// ✅ Category Details লোড করা - Category2Controller দিয়ে
   void _loadCategoryDetails(String category) {
     final categoryId = _getCategoryIdByName(category);
     if (categoryId != null) {
-      print('🎯 Loading category details for: $category (ID: $categoryId)');
-
-      // Load in Category2Controller
       category2Controller.loadCategoryDetails(categoryId);
-    } else {
-      print('❌ No category ID found for category details: $category');
     }
   }
 
   List<ProductModel> applySort(List<ProductModel> products) {
     List<ProductModel> sortedList = List.from(products);
-    switch (selectedSort.value) {
+    switch (selectedSort) {
       case "Newest First":
         sortedList.sort((a, b) => b.id.compareTo(a.id));
         break;
@@ -330,38 +231,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          // Debug button - show current mapping
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              Get.dialog(
-                AlertDialog(
-                  title: Text('Category Mapping (${categoryNameToId.length})'),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: categoryNameToId.entries.map((entry) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Text('${entry.key} -> ${entry.value}'),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
@@ -377,10 +246,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               // Sort & Filter Buttons
               Container(
                 margin: const EdgeInsets.all(8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -397,40 +263,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   children: [
                     TextButton.icon(
                       onPressed: () {
-                        showSortPanel(true);
-                        showFilterPanel(false);
+                        setState(() {
+                          showSortPanel = true;
+                          showFilterPanel = false;
+                        });
                       },
                       icon: const Icon(Icons.sort, color: Colors.black87),
-                      label: const Text(
-                        "Sort",
-                        style: TextStyle(color: Colors.black87),
-                      ),
+                      label: const Text("Sort"),
                     ),
                     TextButton.icon(
                       onPressed: () {
-                        showFilterPanel(true);
-                        showSortPanel(false);
+                        setState(() {
+                          showFilterPanel = true;
+                          showSortPanel = false;
+                        });
                       },
-                      icon: const Icon(
-                        Icons.filter_list,
-                        color: Colors.black87,
-                      ),
-                      label: const Text(
-                        "Filter",
-                        style: TextStyle(color: Colors.black87),
-                      ),
+                      icon: const Icon(Icons.filter_list, color: Colors.black87),
+                      label: const Text("Filter"),
                     ),
                   ],
                 ),
               ),
 
-              // ✅ Products Grid with Children Categories
+              // Products Grid with Children Categories
               Expanded(
                 child: Obx(() {
-                  final currentCategory =
-                      categoryController.currentCategory.value;
+                  final currentCategory = categoryController.currentCategory.value;
 
-                  // Show loading state
+                  // Loading State
                   if (productController.isLoading.value) {
                     return const Center(
                       child: Column(
@@ -438,39 +298,24 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         children: [
                           CircularProgressIndicator(),
                           SizedBox(height: 16),
-                          Text(
-                            'পণ্য লোড হচ্ছে...',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
+                          Text('পণ্য লোড হচ্ছে...'),
                         ],
                       ),
                     );
                   }
 
-                  // Show error state
-                  if (productController.errorMessage.isNotEmpty) {
+                  // Error State
+                  if (productController.errorMessage.value.isNotEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 60,
-                            color: Colors.red[400],
-                          ),
+                          Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
                           const SizedBox(height: 16),
-                          Text(
-                            'ত্রুটি: ${productController.errorMessage.value}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                          Text('ত্রুটি: ${productController.errorMessage.value}'),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () =>
-                                _loadProductsForCategory(currentCategory),
+                            onPressed: () => _loadProductsForCategory(currentCategory),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -483,40 +328,22 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   }
 
                   final products = productController.products;
-                  final sortedProducts = applySort(products.toList());
+                  final sortedProducts = applySort(products);
 
-                  // Show empty state
+                  // Empty State
                   if (sortedProducts.isEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.shopping_basket_outlined,
-                            size: 80,
-                            color: Colors.grey[400],
-                          ),
+                          Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.grey[400]),
                           const SizedBox(height: 16),
-                          Text(
-                            'এই ক্যাটেগরিতে কোনো পণ্য নেই',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                          Text('এই ক্যাটেগরিতে কোনো পণ্য নেই'),
                           const SizedBox(height: 8),
-                          Text(
-                            'অনুগ্রহ করে অন্য ক্যাটেগরি চেষ্টা করুন',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
-                          ),
+                          Text('অনুগ্রহ করে অন্য ক্যাটেগরি চেষ্টা করুন'),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () {
-                              categoryController.updateCategory('মসলা', null);
-                            },
+                            onPressed: () => categoryController.updateCategory('মসলা', null),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -530,23 +357,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                   return Column(
                     children: [
-                      // ✅ Children Categories Section - Category2Controller ব্যবহার করে
-                      // ✅ Better Solution with Flexible widget
+                      // Children Categories Section
                       if (category2Controller.canShowChildren) ...[
                         Container(
-                          height: 140, // Increased height
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
+                          height: 140,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.grey[50],
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 1,
-                              ),
-                            ),
+                            border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -563,61 +381,37 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               Expanded(
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount:
-                                      category2Controller.activeChildren.length,
+                                  itemCount: category2Controller.activeChildren.length,
                                   itemBuilder: (context, index) {
-                                    final child = category2Controller
-                                        .activeChildren[index];
+                                    final child = category2Controller.activeChildren[index];
                                     return GestureDetector(
                                       onTap: () {
-                                        productController
-                                            .loadProductsByCategory(child.id);
-                                        categoryController.updateCategory(
-                                          child.title,
-                                          null,
-                                        );
-                                        category2Controller.selectChildCategory(
-                                          child,
-                                        );
+                                        productController.loadProductsByCategory(child.id);
+                                        categoryController.updateCategory(child.title, null);
+                                        category2Controller.selectChildCategory(child);
                                       },
                                       child: Container(
                                         width: 100,
-                                        margin: const EdgeInsets.only(
-                                          right: 12,
-                                        ),
-                                        padding: const EdgeInsets.all(
-                                          8,
-                                        ), // Added padding
+                                        margin: const EdgeInsets.only(right: 12),
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius: BorderRadius.circular(12),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.grey.withOpacity(
-                                                0.2,
-                                              ),
+                                              color: Colors.grey.withOpacity(0.2),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
                                             ),
                                           ],
-                                          border: Border.all(
-                                            color: AppColors.primaryLight,
-                                            width: 1,
-                                          ),
+                                          border: Border.all(color: AppColors.primaryLight, width: 1),
                                         ),
                                         child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             // Child category image
                                             Container(
-                                              constraints: BoxConstraints(
-                                                maxWidth: 45,
-                                                maxHeight: 45,
-                                              ),
+                                              constraints: const BoxConstraints(maxWidth: 45, maxHeight: 45),
                                               child: child.hasImage
                                                   ? ClipOval(
                                                       child: Image.network(
@@ -625,58 +419,23 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                                         fit: BoxFit.cover,
                                                         width: 45,
                                                         height: 45,
-                                                        errorBuilder:
-                                                            (
-                                                              context,
-                                                              error,
-                                                              stackTrace,
-                                                            ) => Icon(
-                                                              Icons.category,
-                                                              size: 20,
-                                                              color: AppColors
-                                                                  .primary,
-                                                            ),
-                                                        loadingBuilder:
-                                                            (
-                                                              context,
-                                                              child,
-                                                              loadingProgress,
-                                                            ) {
-                                                              if (loadingProgress ==
-                                                                  null)
-                                                                return child;
-                                                              return Center(
-                                                                child: CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2,
-                                                                  value:
-                                                                      loadingProgress
-                                                                              .expectedTotalBytes !=
-                                                                          null
-                                                                      ? loadingProgress.cumulativeBytesLoaded /
-                                                                            loadingProgress.expectedTotalBytes!
-                                                                      : null,
-                                                                ),
-                                                              );
-                                                            },
+                                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                                          Icons.category,
+                                                          size: 20,
+                                                          color: AppColors.primary,
+                                                        ),
                                                       ),
                                                     )
-                                                  : Icon(
-                                                      Icons.category,
-                                                      size: 20,
-                                                      color: AppColors.primary,
-                                                    ),
+                                                  : Icon(Icons.category, size: 20, color: AppColors.primary),
                                             ),
                                             const SizedBox(height: 6),
                                             Flexible(
-                                              // ✅ Use Flexible instead of Expanded
                                               child: Text(
                                                 child.title,
                                                 textAlign: TextAlign.center,
                                                 style: const TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w500,
-                                                  color: Colors.black87,
                                                 ),
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
@@ -694,47 +453,31 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         ),
                         const SizedBox(height: 8),
                       ],
-                      // ✅ Products Count Info
+
+                      // Products Count
                       if (sortedProducts.isNotEmpty) ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 8.0,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'মোট ${sortedProducts.length}টি পণ্য',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                'সর্ট: ${selectedSort.value}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.primary,
-                                ),
-                              ),
+                              Text('মোট ${sortedProducts.length}টি পণ্য'),
+                              Text('সর্ট: $selectedSort'),
                             ],
                           ),
                         ),
                       ],
 
-                      // ✅ Products Grid
+                      // Products Grid
                       Expanded(
                         child: GridView.builder(
                           padding: const EdgeInsets.all(12),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.75,
-                              ),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.75,
+                          ),
                           itemCount: sortedProducts.length,
                           itemBuilder: (context, index) {
                             final product = sortedProducts[index];
@@ -749,25 +492,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ],
           ),
 
-          // ✅ Sort Panel
-          Obx(
-            () => showSortPanel.value
-                ? _buildSortPanel(sortOptions)
-                : const SizedBox.shrink(),
-          ),
+          // Sort Panel
+          if (showSortPanel) _buildSortPanel(sortOptions),
 
-          // ✅ Filter Panel
-          Obx(
-            () => showFilterPanel.value
-                ? _buildFilterPanel()
-                : const SizedBox.shrink(),
-          ),
+          // Filter Panel
+          if (showFilterPanel) _buildFilterPanel(),
         ],
       ),
     );
   }
 
-  // ✅ Product Card Widget
   Widget _buildProductCard(ProductModel product) {
     return InkWell(
       onTap: () => _navigateToProductDetails(product),
@@ -785,30 +519,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    product.imageUrl,
+                    product.image, // ✅ নতুন model property
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        size: 40,
-                        color: Colors.grey,
-                      ),
+                      child: const Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
                     ),
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey[200],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        ),
-                      );
-                    },
                   ),
                 ),
               ),
@@ -825,7 +541,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.black87,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -838,11 +553,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   const SizedBox(height: 4),
 
                   // Unit Type
-                  if (product.unitTypeText.isNotEmpty)
-                    Text(
-                      product.unitTypeText,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
+                  Text(
+                    product.unitText, // ✅ নতুন model property
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
 
                   const SizedBox(height: 8),
 
@@ -857,23 +571,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  // ✅ Price Section Widget
   Widget _buildPriceSection(ProductModel product) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (product.hasDiscount) ...[
+        if (product.hasDiscount) ...[ // ✅ নতুন model property
           Text(
-            product.formattedPrice,
+            '৳${product.price.toStringAsFixed(2)}', // ✅ নতুন model property
             style: const TextStyle(
               color: Colors.grey,
-              fontWeight: FontWeight.normal,
               fontSize: 12,
               decoration: TextDecoration.lineThrough,
             ),
           ),
           Text(
-            product.formattedFinalPrice,
+            '৳${product.finalPrice.toStringAsFixed(2)}', // ✅ নতুন model property
             style: const TextStyle(
               color: Colors.green,
               fontWeight: FontWeight.bold,
@@ -882,7 +594,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ),
         ] else
           Text(
-            product.formattedPrice,
+            '৳${product.price.toStringAsFixed(2)}', // ✅ নতুন model property
             style: const TextStyle(
               color: Colors.green,
               fontWeight: FontWeight.bold,
@@ -893,36 +605,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  // ✅ Add to Cart Button
   Widget _buildAddToCartButton(ProductModel product) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: product.inStock ? AppColors.primary : Colors.grey,
+          backgroundColor: product.isInStock ? AppColors.primary : Colors.grey, // ✅ নতুন model property
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        onPressed: product.inStock ? () => _addToCart(product) : null,
+        onPressed: product.isInStock ? () => _addToCart(product) : null, // ✅ নতুন model property
         child: Text(
-          product.inStock ? "কার্টে যোগ করুন" : "স্টক নেই",
+          product.isInStock ? "কার্টে যোগ করুন" : "স্টক নেই", // ✅ নতুন model property
           style: const TextStyle(fontSize: 12),
         ),
       ),
     );
   }
 
-  // ✅ Add to Cart Logic
   void _addToCart(ProductModel product) {
     final authController = Get.find<AuthController>();
     final item = CartItem(
       id: product.id,
       name: product.title,
       category: categoryController.currentCategory.value,
-      price: product.finalPrice,
+      price: product.finalPrice, // ✅ নতুন model property
       quantity: 1,
-      imagePath: product.imageUrl,
+      imagePath: product.image,  // ✅ নতুন model property
     );
 
     if (authController.isLoggedIn.value) {
@@ -933,32 +643,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
-        duration: const Duration(seconds: 2),
       );
     } else {
-      authController.pendingAction = () {
-        cartController.addToCart(item);
-        Get.snackbar(
-          "সফল!",
-          "${product.title} কার্টে যোগ করা হয়েছে",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
-      };
+      authController.pendingAction = () => cartController.addToCart(item);
       Get.snackbar(
         "লগইন প্রয়োজন",
         "কার্টে যোগ করতে লগইন করুন",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange,
         colorText: Colors.white,
-        duration: const Duration(seconds: 3),
       );
     }
   }
 
-  // ✅ Navigate to Product Details
   void _navigateToProductDetails(ProductModel product) {
     Navigator.push(
       context,
@@ -967,22 +664,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
           product: {
             "id": product.id,
             "name": product.title,
-            "price": product.finalPrice,
-            "image": product.imageUrl,
+            "price": product.finalPrice, // ✅ নতুন model property
+            "image": product.image, // ✅ নতুন model property
             "description": product.description ?? '',
-            "category": product.primaryCategory?.title ?? '',
-            "discount": product.hasDiscount ? product.discountPrice : '0.00',
-            "inStock": product.inStock,
+            "category": product.categoryName, // ✅ নতুন model property
+            "discount": product.hasDiscount ? product.discountPrice : 0.0, // ✅ নতুন model property
+            "inStock": product.isInStock, // ✅ নতুন model property
             "quantity": product.quantity,
-            "originalPrice": double.tryParse(product.price) ?? 0.0,
-            "unit": product.unitTypeText,
-          },
+            "originalPrice": product.price, // ✅ নতুন model property
+            "unit": product.unitText, // ✅ নতুন model property
+          }, productId: product.id, 
         ),
       ),
     );
   }
 
-  // ✅ Sort Panel Widget
   Widget _buildSortPanel(List<String> sortOptions) {
     return Positioned(
       top: 0,
@@ -992,9 +688,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         height: 400,
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.grey.withOpacity(0.5), blurRadius: 10),
-          ],
+          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.5), blurRadius: 10)],
         ),
         child: Column(
           children: [
@@ -1003,34 +697,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
               children: [
                 const Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    "সর্ট করুন",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  child: Text("সর্ট করুন", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  onPressed: () => showSortPanel(false),
+                  onPressed: () => setState(() => showSortPanel = false),
                 ),
               ],
             ),
             Expanded(
               child: ListView(
-                children: sortOptions
-                    .map(
-                      (option) => Obx(
-                        () => RadioListTile<String>(
-                          title: Text(option),
-                          value: option,
-                          groupValue: selectedSort.value,
-                          onChanged: (value) {
-                            selectedSort(value!);
-                            showSortPanel(false);
-                          },
-                        ),
-                      ),
-                    )
-                    .toList(),
+                children: sortOptions.map((option) => RadioListTile<String>(
+                  title: Text(option),
+                  value: option,
+                  groupValue: selectedSort,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedSort = value!;
+                      showSortPanel = false;
+                    });
+                  },
+                )).toList(),
               ),
             ),
           ],
@@ -1039,7 +726,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  // ✅ Filter Panel Widget
   Widget _buildFilterPanel() {
     return Positioned(
       top: 0,
@@ -1049,9 +735,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         height: 400,
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.grey.withOpacity(0.5), blurRadius: 10),
-          ],
+          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.5), blurRadius: 10)],
         ),
         child: Column(
           children: [
@@ -1060,18 +744,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
               children: [
                 const Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    "ফিল্টার",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  child: Text("ফিল্টার", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  onPressed: () => showFilterPanel(false),
+                  onPressed: () => setState(() => showFilterPanel = false),
                 ),
               ],
             ),
-            Expanded(child: FilterBottomSheet()),
+             Expanded(child: FilterBottomSheet()),
           ],
         ),
       ),
