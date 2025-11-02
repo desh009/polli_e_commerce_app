@@ -10,6 +10,9 @@ import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 import 'package:polli_e_commerce_app/ui/home_page/favourite_pages/favourite_pages.dart';
 import 'package:polli_e_commerce_app/ui/latest_products.dart';
+// ✅ CartController এবং CartScreen import করুন
+import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
+import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -18,6 +21,7 @@ class HomePage extends StatelessWidget {
   final drawerController = Get.find<DrawerControllerX>();
   final categoryController = Get.find<CategoryController>(); // ✅ CategoryController
   final sliderController = Get.find<SliderController>();
+  final cartController = Get.find<CartController>(); // ✅ CartController যোগ করুন
 
   final List<Map<String, dynamic>> features = [
     {"icon": Icons.local_shipping, "text": "Delivery"},
@@ -53,6 +57,7 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: IconThemeData(color: AppColors.primary),
+        
         title: Row(
           children: [
             Expanded(
@@ -70,6 +75,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
+            
             SizedBox(width: 10),
             IconButton(
               icon: Icon(Icons.favorite, color: AppColors.primary),
@@ -77,16 +83,18 @@ class HomePage extends StatelessWidget {
                 Get.to(() => const FavouritePage());
               },
             ),
+            
+            // ✅ Cart Icon with Badge - CartController ব্যবহার করুন
             Obx(
               () => Stack(
                 children: [
                   IconButton(
                     icon: Icon(Icons.shopping_cart, color: AppColors.primary),
                     onPressed: () {
-                      Get.to(() => const CartPage());
+                      Get.to(() => CartScreen(product: {}));
                     },
                   ),
-                  if (drawerController.cartCount.value > 0)
+                  if (cartController.totalItems > 0)
                     Positioned(
                       right: 4,
                       top: 4,
@@ -101,7 +109,7 @@ class HomePage extends StatelessWidget {
                           minHeight: 18,
                         ),
                         child: Text(
-                          '${drawerController.cartCount.value}',
+                          '${cartController.totalItems}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -158,7 +166,6 @@ class HomePage extends StatelessWidget {
                         ),
                         SizedBox(height: 10),
                         ElevatedButton(
-                          // ✅ FIX: Proper function call
                           onPressed: () {
                             sliderController.fetchSliders();
                           },
@@ -299,7 +306,6 @@ class HomePage extends StatelessWidget {
                         Text("কোনো ক্যাটাগরি পাওয়া যায়নি"),
                         SizedBox(height: 10),
                         ElevatedButton(
-                          // ✅ FIX: Proper function call
                           onPressed: () {
                             categoryController.fetchCategories();
                           },
@@ -466,9 +472,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
-// // ✅ DrawerControllerX আলাদা file এ রাখুন (lib/ui/home_page/drawer/controller/drawer_controller.dart)
-// class DrawerControllerX extends GetxController {
-//   var selectedItem = "".obs;
-//   var cartCount = 0.obs;
-// }

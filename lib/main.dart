@@ -42,7 +42,10 @@ void main() async {
   print('✅ NetworkClient registered');
 
   /// 🔹 Order Repository
-  Get.lazyPut<CheckoutRepository>(() => CheckoutRepository(networkClient: apiClient), fenix: true);
+  Get.lazyPut<CheckoutRepository>(
+    () => CheckoutRepository(networkClient: apiClient),
+    fenix: true,
+  );
   print('✅ OrderRepository registered');
 
   /// 🔹 2. Auth Controller
@@ -57,7 +60,10 @@ void main() async {
   Get.put<Category1Repository>(Category1Repository(apiClient), permanent: true);
   print('✅ Category1Repository registered');
 
-  Get.put<SliderRepository>(SliderRepository(networkClient: apiClient), permanent: true);
+  Get.put<SliderRepository>(
+    SliderRepository(networkClient: apiClient),
+    permanent: true,
+  );
   print('✅ SliderRepository registered');
 
   // ✅ Product Repository
@@ -65,34 +71,56 @@ void main() async {
   print('✅ BaseProductRepository registered');
 
   // ✅ Checkout Controller
-  Get.put(CheckoutController(repository: 
-    Get.find<CheckoutRepository>()
-  ), permanent: true);
+  Get.put(
+    CheckoutController(
+      checkoutRepository: Get.find<CheckoutRepository>(),
+      cartController: Get.find<CartController>(),
+      repository: Get.find<CheckoutRepository>(),
+    ),
+    permanent: true,
+  );
   print('✅ CheckoutController registered');
 
   // ✅ Product Detail Repository
-  Get.put<BaseProductDetailRepository>(ProductDetailRepository(networkClient: apiClient), permanent: true);
+  Get.put<BaseProductDetailRepository>(
+    ProductDetailRepository(networkClient: apiClient),
+    permanent: true,
+  );
   print('✅ BaseProductDetailRepository registered');
 
   /// 🔹 5. Controllers (সব controllers একসাথে)
-  Get.put<Category1Controller>(Category1Controller(Get.find<Category1Repository>()), permanent: true);
+  Get.put<Category1Controller>(
+    Category1Controller(Get.find<Category1Repository>()),
+    permanent: true,
+  );
   print('✅ Category1Controller registered');
 
   Get.put<CategoryController>(CategoryController(), permanent: true);
   print('✅ CategoryController registered');
 
-  Get.put<SliderController>(SliderController(repository: Get.find<SliderRepository>()), permanent: true);
+  Get.put<SliderController>(
+    SliderController(repository: Get.find<SliderRepository>()),
+    permanent: true,
+  );
   print('✅ SliderController registered');
 
   Get.put<DrawerControllerX>(DrawerControllerX(), permanent: true);
   print('✅ DrawerControllerX registered');
 
   // ✅ Product Controller
-  Get.put<ProductController>(ProductController(repository: Get.find<BaseProductRepository>()), permanent: true);
+  Get.put<ProductController>(
+    ProductController(repository: Get.find<BaseProductRepository>()),
+    permanent: true,
+  );
   print('✅ ProductController registered');
 
   // ✅ Product Detail Controller
-  Get.put<ProductDetailController>(ProductDetailController(repository: Get.find<BaseProductDetailRepository>()), permanent: true);
+  Get.put<ProductDetailController>(
+    ProductDetailController(
+      repository: Get.find<BaseProductDetailRepository>(),
+    ),
+    permanent: true,
+  );
   print('✅ ProductDetailController registered');
 
   // Category2 Repository & Controller
@@ -165,7 +193,7 @@ class MyApp extends StatelessWidget {
       defaultTransition: Transition.cupertino,
       opaqueRoute: Get.isPlatformDarkMode,
       popGesture: true,
-      
+
       // Optional: Global configuration for WebView
       builder: (context, child) {
         return GestureDetector(

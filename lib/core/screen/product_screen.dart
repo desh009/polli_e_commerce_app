@@ -1,10 +1,13 @@
 // lib/core/screen/product_details_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/cart_item/cart_item.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/view/chek_out_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Login_screen.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_controller.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_response.dart';
 import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -46,44 +49,84 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       imagePath: product.fixedImageUrl, 
     );
 
-    // ✅ যদি user logged in থাকে
-    if (authController.isLoggedIn.value) {
-      cartController.addToCart(item);
-      Get.to(() => CartScreen(product: {},)); // ✅ CartScreen constructor fix
-      Get.snackbar(
-        "Success",
-        "${product.title} added to cart",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+    // ✅ সরাসরি Add to Cart - Login required নাই
+    cartController.addToCart(item);
+    
+    Get.snackbar(
+      "Success ✅",
+      "${product.title} added to cart",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: Duration(seconds: 2),
+    );
+  }
+
+  void _buyNow() {
+    final product = productController.currentProduct;
+    if (product == null) return;
+
+    // ✅ Buy Now এর জন্য Login required
+    if (!authController.isLoggedIn.value) {
+      final item = CartItem(
+        id: product.id,
+        name: product.title,
+        category: productController.mainCategoryName,
+        price: double.parse(product.price),
+        quantity: 1,
+        imagePath: product.fixedImageUrl, 
       );
-    } 
-    // ✅ যদি user logged in না থাকে
-    else {
-      // ✅ Pending action set করুন
+
+      // ✅ Pending action set করুন for buy now flow
       authController.pendingAction = () {
         cartController.addToCart(item);
-        Get.to(() => CartScreen(product: {},)); // ✅ CartScreen constructor fix
-        Get.snackbar(
-          "Success",
-          "${product.title} added to cart",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        // ✅ CheckoutScreen-এ navigate করুন
+        Get.to(() => CheckoutScreen());
       };
       
       // ✅ Login screen এ navigate করুন
       Get.to(() => LoginScreen());
       
       Get.snackbar(
-        "Login Required",
-        "Please login to add items to cart",
+        "Login Required 🔐",
+        "Please login to proceed with purchase",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange,
         colorText: Colors.white,
       );
+      return;
     }
+
+    // ✅ User logged in থাকলে CheckoutScreen-এ navigate করুন
+    _navigateToCheckout(product);
+  }
+
+  void _navigateToCheckout(SingleProductModel product) {
+    final item = CartItem(
+      id: product.id,
+      name: product.title,
+      category: productController.mainCategoryName,
+      price: double.parse(product.price),
+      quantity: 1,
+      imagePath: product.fixedImageUrl, 
+    );
+
+    // Add to cart first (যদি আগে না থাকে)
+    bool itemAlreadyInCart = cartController.cartItems.any((cartItem) => cartItem.id == item.id);
+    if (!itemAlreadyInCart) {
+      cartController.addToCart(item);
+    }
+
+    // Then directly navigate to checkout screen
+    Get.to(() => CheckoutScreen());
+    
+    Get.snackbar(
+      "Proceed to Checkout 🛒",
+      "${product.title} added to cart. Proceed to checkout.",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
   }
 
   @override
@@ -95,6 +138,42 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         )),
         backgroundColor: Colors.green,
         actions: [
+          // ✅ Cart Icon with Badge
+          Obx(() => Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Get.to(() => CartScreen(product: {}));
+                },
+              ),
+              if (cartController.totalItems > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '${cartController.totalItems}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          )),
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () => productController.refreshProduct(widget.productId),
@@ -341,29 +420,110 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     
                     SizedBox(height: 30),
                     
-                    // Add to Cart Button
-                    Center(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: productController.isProductInStock 
-                              ? Colors.green 
-                              : Colors.grey,
-                          foregroundColor: Colors.white,
-                          fixedSize: const Size(200, 50),
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    // Add to Cart and Buy Now Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Add to Cart Button - NO LOGIN REQUIRED
+                        Expanded(
+                          child: Container(
+                            margin: EdgeInsets.only(right: 8),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: productController.isProductInStock 
+                                    ? Colors.green 
+                                    : Colors.grey,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: productController.isProductInStock 
+                                  ? _addToCart 
+                                  : null,
+                              child: const Text(
+                                "Add to Cart",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
                           ),
                         ),
-                        onPressed: productController.isProductInStock 
-                            ? _addToCart 
-                            : null,
-                        child: const Text(
-                          "Add to Cart",
-                          style: TextStyle(fontSize: 16),
+                        
+                        // Buy Now Button - LOGIN REQUIRED
+                        Expanded(
+                          child: Container(
+                            margin: EdgeInsets.only(left: 8),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: productController.isProductInStock 
+                                    ? Colors.orange 
+                                    : Colors.grey,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: productController.isProductInStock 
+                                  ? _buyNow 
+                                  : null,
+                              child: const Text(
+                                "Buy Now",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // ✅ User login status display
+                    SizedBox(height: 10),
+                    Obx(() => Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          authController.isLoggedIn.value 
+                              ? Icons.verified_user 
+                              : Icons.person_outline,
+                          color: authController.isLoggedIn.value 
+                              ? Colors.green 
+                              : Colors.orange,
+                          size: 16,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          authController.isLoggedIn.value 
+                              ? "Logged In" 
+                              : "Guest User - Login for Buy Now",
+                          style: TextStyle(
+                            color: authController.isLoggedIn.value 
+                                ? Colors.green 
+                                : Colors.orange,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    )),
+
+                    // ✅ View Cart Button
+                    SizedBox(height: 10),
+                    if (cartController.totalItems > 0)
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Get.to(() => CartScreen(product: {}));
+                          },
+                          child: Text(
+                            "View Cart (${cartController.totalItems} items)",
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
                     
                     SizedBox(height: 20),
                   ],
