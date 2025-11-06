@@ -30,10 +30,17 @@ abstract class Routes {
   static const PROFILE = _Paths.PROFILE;
   static const LOGOUT = _Paths.LOGOUT;
   static const CART = _Paths.CART;
+    // static const CHECKOUT = _Paths.CART;
+
   
   // ✅ নতুন Routes এড করুন
   static const CHECKOUT = _Paths.CHECKOUT;
   static const ORDER_SUCCESS = _Paths.ORDER_SUCCESS;
+    static const OTP_VERIFICATION = _Paths.OTP_VERIFICATION;
+
+  // ✅ লগইন এবং সাইন আপ Routes এড করুন
+  static const LOGIN = _Paths.LOGIN;
+  static const SIGNUP = _Paths.SIGNUP;
 }
 
 abstract class _Paths {
@@ -69,4 +76,9 @@ abstract class _Paths {
   // ✅ নতুন Paths এড করুন
   static const CHECKOUT = '/checkout';
   static const ORDER_SUCCESS = '/order-success';
+    static const OTP_VERIFICATION = '/otp-verification';
+
+  // ✅ লগইন এবং সাইন আপ Paths এড করুন
+  static const LOGIN = '/login';
+  static const SIGNUP = '/signup';
 }

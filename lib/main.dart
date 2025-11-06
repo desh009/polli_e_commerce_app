@@ -1,9 +1,11 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/controller/chek_out_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/repository/chek_out_repository.dart';
-import 'package:webview_flutter/webview_flutter.dart'; // WebView import করুন
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/controller/login_controller.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/login_auth_binding/login_auth_binding.dart';
+import 'package:polli_e_commerce_app/routes/app_pages.dart';
 import 'package:polli_e_commerce_app/core/network/api_client.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/controller/category_controller.dart';
@@ -23,32 +25,52 @@ import 'package:polli_e_commerce_app/ui/home_page/drawer/controller/drwaer_contr
 import 'package:polli_e_commerce_app/ui/splash_screen.dart';
 
 void main() async {
+  await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
 
-  // WebView Platform Initialization (AamarPay-এর জন্য জরুরি)
-  // await _initializeWebView();
+  print('🚀 ========== APP INITIALIZATION STARTED ==========');
 
   /// 🔹 1. FIRST - NetworkClient Register করুন (সবচেয়ে আগে)
   final apiClient = NetworkClient(
     onUnAuthorize: () {
       print("🔐 Unauthorized! Redirect to login...");
+      // Unauthorized হলে logout করান
+      try {
+        final authController = Get.find<EpicAuthController>();
+        authController.executeUserLogout();
+      } catch (e) {
+        print('❌ Error in onUnAuthorize: $e');
+      }
     },
-    commonHeaders: () => {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
+    commonHeaders: () {
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
+
+      // ✅ FIX: Always get fresh token from controller
+      try {
+        final authController = Get.find<EpicAuthController>();
+        if (authController.authToken.isNotEmpty) {
+          headers['Authorization'] = 'Bearer ${authController.authToken.value}';
+          print('🔐 NetworkClient: Adding Authorization header');
+        } else {
+          print('⚠️ NetworkClient: No auth token available');
+        }
+      } catch (e) {
+        print('⚠️ NetworkClient: AuthController not available: $e');
+      }
+
+      return headers;
     },
   );
   Get.put<NetworkClient>(apiClient, permanent: true);
   print('✅ NetworkClient registered');
 
-  /// 🔹 Order Repository
-  Get.lazyPut<CheckoutRepository>(
-    () => CheckoutRepository(networkClient: apiClient),
-    fenix: true,
-  );
-  print('✅ OrderRepository registered');
+  /// 🔹 2. AUTH CONTROLLERS (নতুন এবং পুরানো)
+  Get.put<EpicAuthController>(EpicAuthController(), permanent: true);
+  print('✅ EpicAuthController registered');
 
-  /// 🔹 2. Auth Controller
   Get.put(AuthController(), permanent: true);
   print('✅ AuthController registered');
 
@@ -56,7 +78,7 @@ void main() async {
   Get.put(CartController(), permanent: true);
   print('✅ CartController registered');
 
-  /// 🔹 4. Repositories (সব repositories একসাথে)
+  /// 🔹 4. REPOSITORIES
   Get.put<Category1Repository>(Category1Repository(apiClient), permanent: true);
   print('✅ Category1Repository registered');
 
@@ -66,29 +88,32 @@ void main() async {
   );
   print('✅ SliderRepository registered');
 
-  // ✅ Product Repository
+  // Product Repository
   Get.put<BaseProductRepository>(ProductRepository(apiClient), permanent: true);
   print('✅ BaseProductRepository registered');
 
-  // ✅ Checkout Controller
-  Get.put(
-    CheckoutController(
-      checkoutRepository: Get.find<CheckoutRepository>(),
-      cartController: Get.find<CartController>(),
-      
-    ),
-    permanent: true,
+  // Order Repository
+  Get.lazyPut<CheckoutRepository>(
+    () => CheckoutRepository(networkClient: apiClient),
+    fenix: true,
   );
-  print('✅ CheckoutController registered');
+  print('✅ CheckoutRepository registered');
 
-  // ✅ Product Detail Repository
+  // Product Detail Repository
   Get.put<BaseProductDetailRepository>(
     ProductDetailRepository(networkClient: apiClient),
     permanent: true,
   );
   print('✅ BaseProductDetailRepository registered');
 
-  /// 🔹 5. Controllers (সব controllers একসাথে)
+  // Category2 Repository
+  Get.lazyPut<Category2Repository>(
+    () => Category2Repository(Get.find<NetworkClient>()),
+    fenix: true,
+  );
+  print('✅ Category2Repository registered');
+
+  /// 🔹 5. CONTROLLERS
   Get.put<Category1Controller>(
     Category1Controller(Get.find<Category1Repository>()),
     permanent: true,
@@ -107,14 +132,14 @@ void main() async {
   Get.put<DrawerControllerX>(DrawerControllerX(), permanent: true);
   print('✅ DrawerControllerX registered');
 
-  // ✅ Product Controller
+  // Product Controller
   Get.put<ProductController>(
     ProductController(repository: Get.find<BaseProductRepository>()),
     permanent: true,
   );
   print('✅ ProductController registered');
 
-  // ✅ Product Detail Controller
+  // Product Detail Controller
   Get.put<ProductDetailController>(
     ProductDetailController(
       repository: Get.find<BaseProductDetailRepository>(),
@@ -123,37 +148,27 @@ void main() async {
   );
   print('✅ ProductDetailController registered');
 
-  // Category2 Repository & Controller
-  Get.lazyPut<Category2Repository>(
-    () => Category2Repository(Get.find<NetworkClient>()),
-    fenix: true,
+  // Checkout Controller
+  Get.put(
+    CheckoutController(
+      checkoutRepository: Get.find<CheckoutRepository>(),
+      cartController: Get.find<CartController>(),
+    ),
+    permanent: true,
   );
-  print('✅ Category2Repository registered');
+  print('✅ CheckoutController registered');
 
+  // Category2 Controller
   Get.lazyPut<Category2Controller>(
     () => Category2Controller(Get.find<Category2Repository>()),
     fenix: true,
   );
   print('✅ Category2Controller registered');
 
-  print('🎉 All dependencies initialized successfully!');
+  print('🎉 ========== ALL DEPENDENCIES INITIALIZED SUCCESSFULLY! ==========');
 
   runApp(const MyApp());
 }
-
-// WebView Initialization Function
-// Future<void> _initializeWebView() async {
-//   try {
-//     // Android WebView initialization
-//     if (WebViewPlatform.instance != null) {
-//       await WebViewPlatform.instance!.initialize();
-//       print('✅ WebView Platform initialized successfully');
-//     }
-//   } catch (e) {
-//     print('⚠️ WebView initialization error: $e');
-//     // Continue anyway - WebView might still work
-//   }
-// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -162,6 +177,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Palli Swad',
+      getPages: AppPages.routes,
+      initialBinding: EpicAuthBinding(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.primary,
@@ -193,12 +210,9 @@ class MyApp extends StatelessWidget {
       defaultTransition: Transition.cupertino,
       opaqueRoute: Get.isPlatformDarkMode,
       popGesture: true,
-
-      // Optional: Global configuration for WebView
       builder: (context, child) {
         return GestureDetector(
           onTap: () {
-            // Hide keyboard when tapping outside
             FocusScope.of(context).requestFocus(FocusNode());
           },
           child: child,

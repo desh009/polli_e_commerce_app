@@ -5,8 +5,6 @@ import 'package:http/http.dart';
 import 'package:logger/logger.dart';
 import 'package:polli_e_commerce_app/core/network/api_response.dart';
 
-
-
 class NetworkClient {
   final Logger _logger = Logger();
   final Map<String, String> Function() commonHeaders;
@@ -192,7 +190,6 @@ class NetworkClient {
       final Response response = await delete(
         uri,
         headers: commonHeaders(),
-
       );
       _logResponse(response);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -251,16 +248,3 @@ class NetworkClient {
     _logger.i(message);
   }
 }
-
-
-
-// final responseBody = jsonDecode(response.body);
-
-// class response {
-//   static String? get body => null;
-// }
-// final product = ProductModel.fromJson(responseBody);
-
-// mixin ProductModel {
-//   static fromJson(responseBody) {}
-// }

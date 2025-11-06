@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/get_instance.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
@@ -5,6 +6,9 @@ import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/a
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/binder/chek_out_binder.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/view/chek_out_view.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/view/Login_screen.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/sign_up_screen/otp_verificationa-screen/otp_verification_screen.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/sign_up_screen/sign_up_screen.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/binder/log_out_binder.dart';
 import 'package:polli_e_commerce_app/moduls/Log_out/view/logout_view.dart';
 import 'package:polli_e_commerce_app/moduls/main_layout/bindings/main_layout_bindings.dart';
@@ -24,6 +28,7 @@ part 'app_rutes.dart';
 
 class AppPages {
   AppPages._();
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     // GetPage(
@@ -48,7 +53,10 @@ class AppPages {
       binding: CheckoutBinding(),
     ),
     // lib/routes/app_pages.dart
+    GetPage(name: _Paths.LOGIN, page: () => const LoginScreen()),
 
+    // ✅ সাইন আপ রাউট যোগ করুন
+    GetPage(name: _Paths.SIGNUP, page: () => const SignUpScreen()),
     GetPage(
       name: _Paths.MAIN_LAYOUT,
       page: () => MainLayoutView(),
@@ -85,7 +93,13 @@ class AppPages {
       page: () => const LogoutView(),
       binding: LogoutBinding(),
     ),
-
+    // GetPage(
+    //   name: _Paths.OTP_VERIFICATION,
+    //   page: () => OtpVerificationScreen(
+    //     email: Get.arguments['email'] ?? '',
+    //     phone: Get.arguments['phone'] ?? '',
+    //   ),
+    // ),
     GetPage(
       name: Routes.CART,
       page: () => CartScreen(product: {}),
@@ -95,13 +109,33 @@ class AppPages {
     ),
     // main.dart এ এই লাইনগুলো এড করুন
 
-// GetMaterialApp এর মধ্যে
-GetPage(
-  name: '/checkout',
-  page: () => CheckoutScreen(),
-  binding: CheckoutBinding(),
-),
+    // GetMaterialApp এর মধ্যে
+    GetPage(
+        name: _Paths.CHECKOUT,
 
+      page: () => CheckoutScreen(),
+      binding: CheckoutBinding(),
+    ),
+    // lib/app_pages.dart - final version
+  GetPage(
+    name: _Paths.OTP_VERIFICATION,
+    page: () {
+      // arguments check করুন
+      if (Get.arguments != null && Get.arguments is Map) {
+        final args = Get.arguments as Map;
+        return OtpVerificationScreen(
+          email: args['email']?.toString() ?? '',
+          phone: args['phone']?.toString() ?? '',
+        );
+      } else {
+        // Fallback values
+        return const OtpVerificationScreen(
+          email: 'user@example.com',
+          phone: '01700000000',
+        );
+      }
+    },
+  ),
     // GetPage(
     // //   name: _Paths.FORGOT_PASSWORD,
     //   page: () => ForgotPasswordView(),
