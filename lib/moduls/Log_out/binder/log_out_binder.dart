@@ -7,3 +7,4 @@ class LogoutBinding extends Bindings {
     Get.lazyPut<LogoutController>(() => LogoutController());
   }
 }
+

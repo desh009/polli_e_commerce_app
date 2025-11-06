@@ -9,9 +9,11 @@ import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_respons
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/auth_response/auth_response.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/login_response/login_response.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/repository/login_repository.dart';
+import 'package:polli_e_commerce_app/moduls/Log_out/repostory/log_out_repository.dart';
 
 class EpicAuthController extends GetxController {
   late final EpicAuthRepository _authRepository;
+  late final LogoutRepository _logoutRepository; // ✅ Add logout repository
   final GetStorage _storage = GetStorage();
 
   // Observable variables
@@ -33,7 +35,8 @@ class EpicAuthController extends GetxController {
   void _initializeRepository() {
     final networkClient = Get.find<NetworkClient>();
     _authRepository = EpicAuthRepository(networkClient: networkClient);
-    print('✅ EpicAuthRepository initialized');
+    _logoutRepository = LogoutRepository(networkClient: networkClient); // ✅ Initialize
+    print('✅ EpicAuthRepository & LogoutRepository initialized');
   }
 
   // 📥 Load stored user data - FIXED
@@ -49,7 +52,7 @@ class EpicAuthController extends GetxController {
       if (storedToken != null && storedUser != null) {
         authToken.value = storedToken;
         epicUserData.value = EpicUserData.fromJson(storedUser);
-        isLoggedIn.value = true; // ✅ CRITICAL: Set to true
+        isLoggedIn.value = true;
 
         print('✅ User data loaded successfully from storage');
         print('✅ Token: ${authToken.value}');
@@ -57,7 +60,7 @@ class EpicAuthController extends GetxController {
         print('✅ User: ${epicUserData.value?.completeName}');
       } else {
         print('ℹ️ No stored user data found');
-        isLoggedIn.value = false; // ✅ Explicitly set to false
+        isLoggedIn.value = false;
         authToken.value = '';
       }
     } catch (e) {
@@ -77,18 +80,14 @@ class EpicAuthController extends GetxController {
       _storage.write('auth_token', response.authToken);
       _storage.write('user_data', response.userData.toJson());
       authToken.value = response.authToken;
-      isLoggedIn.value = true; // ✅ CRITICAL: Set to true
+      isLoggedIn.value = true;
 
       // Verify save
       final savedToken = _storage.read('auth_token');
       final savedUser = _storage.read('user_data');
 
-      print(
-        '✅ Storage verification - Token: ${savedToken != null ? "SAVED" : "NOT SAVED"}',
-      );
-      print(
-        '✅ Storage verification - User: ${savedUser != null ? "SAVED" : "NOT SAVED"}',
-      );
+      print('✅ Storage verification - Token: ${savedToken != null ? "SAVED" : "NOT SAVED"}');
+      print('✅ Storage verification - User: ${savedUser != null ? "SAVED" : "NOT SAVED"}');
       print('✅ AuthToken Rx: ${authToken.value}');
       print('✅ isLoggedIn Rx: ${isLoggedIn.value}');
     } catch (e) {
@@ -125,14 +124,10 @@ class EpicAuthController extends GetxController {
       );
 
       if (response.isSuccess) {
-        // Update state
         epicUserData.value = response.userData;
         isLoggedIn.value = true;
-
-        // Save to storage
         _saveUserData(response);
 
-        // Show success message
         Get.snackbar(
           'Welcome!',
           response.message,
@@ -142,10 +137,7 @@ class EpicAuthController extends GetxController {
         );
 
         print('✅ Login successful: ${response.userData.completeName}');
-
-        // ✅ FIX: Navigation logic
         _navigateAfterLogin();
-
         return true;
       } else {
         throw Exception(response.message);
@@ -165,131 +157,137 @@ class EpicAuthController extends GetxController {
     }
   }
 
-  // ✅ NEW METHOD: Navigation after login - FIXED
-// AuthController er _navigateAfterLogin method ta update koren
-// AuthController - _navigateAfterLogin method update koren
-void _navigateAfterLogin() {
-  print('🔄 ========== NAVIGATION AFTER LOGIN ==========');
-  print('📍 Current route: ${Get.currentRoute}');
-  print('🔍 Pending action: ${pendingAction != null ? "EXISTS" : "NULL"}');
-  print('🔐 User logged in: $isLoggedIn');
+  // ✅ Navigation after login
+  void _navigateAfterLogin() {
+    print('🔄 ========== NAVIGATION AFTER LOGIN ==========');
+    print('📍 Current route: ${Get.currentRoute}');
+    print('🔍 Pending action: ${pendingAction != null ? "EXISTS" : "NULL"}');
 
-  // ✅ FIX: Execute pending action if exists
-  if (pendingAction != null) {
-    print('🎯 Executing pending action after login');
-    
-    final savedAction = pendingAction;
-    pendingAction = null; // Clear immediately
+    if (pendingAction != null) {
+      print('🎯 Executing pending action after login');
+      
+      final savedAction = pendingAction;
+      pendingAction = null;
 
-    // ✅ IMPORTANT: Close login screen first
-    if (Get.currentRoute == '/login' || Get.currentRoute.contains('LoginScreen')) {
-      print('📱 Closing login screen...');
-      Get.back(); // Close login screen
-    }
-
-    // ✅ Execute the pending action with proper delay
-    Future.delayed(Duration(milliseconds: 500), () {
-      print('🚀 Executing saved pending action - Navigating to Checkout');
-      try {
-        savedAction!();
-        print('✅ Pending action executed successfully');
-      } catch (e) {
-        print('❌ Error executing pending action: $e');
-        // Emergency fallback
-        Get.offAll(() => CheckoutScreen());
+      if (Get.currentRoute == '/login' || Get.currentRoute.contains('LoginScreen')) {
+        print('📱 Closing login screen...');
+        Get.back();
       }
-    });
-  } else {
-    print('💡 No pending action found');
-    // If no pending action, just close login screen
-    if (Get.currentRoute == '/login' || Get.currentRoute.contains('LoginScreen')) {
-      Get.back();
+
+      Future.delayed(Duration(milliseconds: 500), () {
+        print('🚀 Executing saved pending action');
+        try {
+          savedAction!();
+          print('✅ Pending action executed successfully');
+        } catch (e) {
+          print('❌ Error executing pending action: $e');
+          Get.offAll(() => CheckoutScreen());
+        }
+      });
+    } else {
+      print('💡 No pending action found');
+      if (Get.currentRoute == '/login' || Get.currentRoute.contains('LoginScreen')) {
+        Get.back();
+      }
     }
+  }
+
+  // 🚪 Logout Method - UPDATED with repository
+// lib/core/widgets/auth_controller.dart - Updated logout method
+Future<void> executeUserLogout() async {
+  try {
+    isLoading.value = true;
+    print('🔄 ========== LOGOUT PROCESS STARTED ==========');
+    print('🔐 Current token status: ${authToken.value.isNotEmpty ? "EXISTS" : "EMPTY"}');
+    print('🔐 Token valid check: ${isLoggedIn.value}');
+
+    bool serverLogoutSuccess = false;
+
+    // ✅ CHECK: Token valid thaklei server logout call korbo
+    if (authToken.isNotEmpty && isLoggedIn.value) {
+      print('📡 Calling server logout API...');
+      serverLogoutSuccess = await _logoutRepository.performUserLogout();
+      
+      if (serverLogoutSuccess) {
+        print('✅ Server logout successful');
+      } else {
+        print('⚠️ Server logout failed, but continuing with local logout');
+      }
+    } else {
+      print('ℹ️ Token already invalid/empty, performing local logout only');
+    }
+
+    // ✅ ALWAYS clear local data (token valid/invalid jai hok)
+    _clearUserData();
+
+    Get.snackbar(
+      'Logged Out ✅',
+      'You have been successfully logged out',
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: Duration(seconds: 3),
+    );
+
+    print('✅ Logout process completed');
+
+    // ✅ Navigate to home screen
+    Get.offAllNamed('/');
+
+  } catch (e) {
+    print('❌ Logout error: $e');
+    
+    // ✅ Emergency: Clear data even if everything fails
+    _clearUserData();
+    
+    Get.snackbar(
+      'Session Cleared',
+      'Local data cleared successfully',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
+    
+    Get.offAllNamed('/');
+  } finally {
+    isLoading.value = false;
   }
 }
-
-  // 🚪 Logout Method
-  Future<void> executeUserLogout() async {
-    try {
-      isLoading.value = true;
-      print('🔄 Attempting logout');
-
-      if (authToken.isNotEmpty) {
-        await _authRepository.performUserLogout();
-      }
-
-      // Clear local data
-      _clearUserData();
-
-      Get.snackbar(
-        'Logged Out',
-        'You have been successfully logged out',
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-        duration: Duration(seconds: 3),
-      );
-
-      print('✅ Logout successful');
-
-      // Navigate to login screen
-      Get.offAllNamed('/login');
-    } catch (e) {
-      print('❌ Logout error: $e');
-      Get.snackbar(
-        'Logout Error',
-        e.toString(),
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
   // ========== SIMPLE AUTH METHODS ========== //
 
   void onLoginSuccess() {
     print('🎯 Login successful, checking pending actions...');
-
-    // ✅ Execute pending action if exists (BUY NOW)
     if (pendingAction != null) {
       print('🚀 Executing pending buy now action');
-
       final savedAction = pendingAction;
-      pendingAction = null; // Clear immediately
-
-      // Small delay to ensure navigation completes
+      pendingAction = null;
       Future.delayed(Duration(milliseconds: 500), () {
-        print('🛒 Executing saved buy now action');
         savedAction!();
       });
     } else {
       print('💡 No pending action after login');
-      // Regular login flow - navigate to home or stay
     }
   }
 
   void login() {
     isLoggedIn.value = true;
-    pendingAction?.call(); // pending কাজ execute হবে
+    pendingAction?.call();
     pendingAction = null;
   }
 
   void logout() {
     isLoggedIn.value = false;
-    _clearUserData(); // Clear storage data as well
+    _clearUserData();
   }
 
   void checkAuthAndExecute(VoidCallback action) {
     if (isLoggedIn.value) {
-      action(); // যদি লগইন থাকে, সরাসরি চালাও
+      action();
     } else {
-      pendingAction = action; // কাজ টা pending রাখো
-      Get.to(() => LoginScreen()); // Login screen এ পাঠাও
+      pendingAction = action;
+      Get.to(() => LoginScreen());
     }
   }
 
-  // Check if user needs to login for an action
   void requireAuthentication(VoidCallback action) {
     if (isLoggedIn.value) {
       action();
