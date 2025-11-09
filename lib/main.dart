@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/controller/chek_out_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/repository/chek_out_repository.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/controller/registration_controller.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/repository/registration_repository.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/controller/login_controller.dart';
-import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/login_auth_binding/login_auth_binding.dart';
 import 'package:polli_e_commerce_app/routes/app_pages.dart';
 import 'package:polli_e_commerce_app/core/network/api_client.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
@@ -34,7 +35,6 @@ void main() async {
   final apiClient = NetworkClient(
     onUnAuthorize: () {
       print("🔐 Unauthorized! Redirect to login...");
-      // Unauthorized হলে logout করান
       try {
         final authController = Get.find<EpicAuthController>();
         authController.executeUserLogout();
@@ -48,17 +48,15 @@ void main() async {
         "Accept": "application/json",
       };
 
-      // ✅ FIX: Always get fresh token from controller
       try {
         final authController = Get.find<EpicAuthController>();
         if (authController.authToken.isNotEmpty) {
           headers['Authorization'] = 'Bearer ${authController.authToken.value}';
           print('🔐 NetworkClient: Adding Authorization header');
-        } else {
-          print('⚠️ NetworkClient: No auth token available');
         }
+        // Remove confusing "No auth token" message
       } catch (e) {
-        print('⚠️ NetworkClient: AuthController not available: $e');
+        // Remove confusing error message
       }
 
       return headers;
@@ -67,7 +65,7 @@ void main() async {
   Get.put<NetworkClient>(apiClient, permanent: true);
   print('✅ NetworkClient registered');
 
-  /// 🔹 2. AUTH CONTROLLERS (নতুন এবং পুরানো)
+  /// 🔹 2. AUTH CONTROLLERS
   Get.put<EpicAuthController>(EpicAuthController(), permanent: true);
   print('✅ EpicAuthController registered');
 
@@ -78,10 +76,37 @@ void main() async {
   Get.put(CartController(), permanent: true);
   print('✅ CartController registered');
 
-  /// 🔹 4. REPOSITORIES
-  Get.put<Category1Repository>(Category1Repository(apiClient), permanent: true);
-  print('✅ Category1Repository registered');
+  /// 🔹 4. REGISTRATION SETUP - REPOSITORY FIRST!
+  // ✅ Registration Repository FIRST
+  Get.lazyPut<RegistrationRepository>(
+    () => RegistrationRepository(
+      Get.find<NetworkClient>(),
+      networkClient: apiClient,
+    ),
+    fenix: true,
+  );
+  print('✅ RegistrationRepository registered');
 
+  // ✅ THEN Registration Controller
+  Get.lazyPut<RegistrationController>(
+    () => RegistrationController(Get.find<RegistrationRepository>()),
+    fenix: true,
+  );
+  print('✅ RegistrationController registered');
+
+  /// 🔹 5. OTHER REPOSITORIES
+  // Get.put<Category1Repository>(Category1Repository(apiClient), permanent: true);
+  // print('✅ Category1Repository registered');
+  Get.lazyPut<Category1Repository>(
+    () => Category1Repository(Get.find<NetworkClient>()),
+    fenix: true,
+  );
+  print('✅ Category1Repository registered');
+    Get.lazyPut<Category1Controller>(
+    () => Category1Controller(Get.find<Category1Repository>()),
+    fenix: true,
+  );
+  print('✅ Category1Controller registered');
   Get.put<SliderRepository>(
     SliderRepository(networkClient: apiClient),
     permanent: true,
@@ -105,6 +130,9 @@ void main() async {
     permanent: true,
   );
   print('✅ BaseProductDetailRepository registered');
+  // Get.lazyPut<Category1Repository>(
+  //   () => Category1Repository(Get.find<NetworkClient>()),
+  // );
 
   // Category2 Repository
   Get.lazyPut<Category2Repository>(
@@ -113,12 +141,12 @@ void main() async {
   );
   print('✅ Category2Repository registered');
 
-  /// 🔹 5. CONTROLLERS
-  Get.put<Category1Controller>(
-    Category1Controller(Get.find<Category1Repository>()),
-    permanent: true,
-  );
-  print('✅ Category1Controller registered');
+  /// 🔹 6. CONTROLLERS
+  // Get.put<Category1Controller>(
+  //   Category1Controller(Get.find<Category1Repository>()),
+  //   permanent: true,
+  // );
+  // print('✅ Category1Controller registered');
 
   Get.put<CategoryController>(CategoryController(), permanent: true);
   print('✅ CategoryController registered');
@@ -178,7 +206,6 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Palli Swad',
       getPages: AppPages.routes,
-      initialBinding: EpicAuthBinding(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.primary,

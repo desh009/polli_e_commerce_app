@@ -44,6 +44,7 @@ dependencies:
   logger: ^2.6.1
   aamarpay: ^1.0.15
   get_storage: ^2.1.1
+  url_launcher: ^6.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

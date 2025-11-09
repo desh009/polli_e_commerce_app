@@ -1,22 +1,32 @@
+// login_auth_binding/login_auth_binding.dart
 import 'package:get/get.dart';
-import 'package:polli_e_commerce_app/core/network/api_client.dart';
-import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/repository/login_repository.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/src/bindings_interface.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/controller/registration_controller.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/repository/registration_repository.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/controller/login_controller.dart';
 
-class EpicAuthBinding implements Bindings {
+class EpicAuthBinding extends Bindings {
   @override
   void dependencies() {
-    print('🔧 ========== EPIC AUTH BINDING INITIALIZED ==========');
+    print('🔐 Initializing Auth Bindings...');
     
-    // NetworkClient should already be registered in main.dart
-    final networkClient = Get.find<NetworkClient>();
-    
-    // Register Auth Repository
-    Get.lazyPut<EpicAuthRepository>(
-      () => EpicAuthRepository(networkClient: networkClient),
+    // ✅ RegistrationController add করুন
+    Get.lazyPut<RegistrationController>(
+      () => RegistrationController(
+        Get.find<RegistrationRepository>(),
+      ),
       fenix: true,
     );
+    print('✅ RegistrationController bound');
+
+    // Existing auth controller
+    Get.lazyPut<EpicAuthController>(
+      () => EpicAuthController(),
+      fenix: true,
+    );
+    print('✅ EpicAuthController bound');
     
-    print('✅ EpicAuthRepository registered in binding');
-    print('✅ EpicAuthController already registered in main.dart');
+    print('🎉 All Auth Bindings Initialized!');
   }
 }

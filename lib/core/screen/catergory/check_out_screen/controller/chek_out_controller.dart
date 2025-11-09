@@ -1,9 +1,9 @@
-// lib/core/screen/catergory/check_out_screen/controller/chek_out_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/cart_item/cart_item.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/repository/chek_out_repository.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/view/chek_out_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/order_successfull_screen/oder_sucessfull_screen.dart';
 
 class CheckoutController extends GetxController {
@@ -14,14 +14,7 @@ class CheckoutController extends GetxController {
     required this.checkoutRepository,
     required this.cartController,
   });
-  void refreshCheckoutData(dynamic isLoading) {
-    // Implement your refresh logic here
-    isLoading.value = true;
-    // Fetch data again
-    Future.delayed(const Duration(seconds: 1), () {
-      isLoading.value = false;
-    });
-  }
+
   // Customer Information
   var customerName = ''.obs;
   var phone = ''.obs;
@@ -53,17 +46,8 @@ class CheckoutController extends GetxController {
     _loadCustomerInfo();
     _checkOtpVerification();
     
-    // ✅ REMOVED: Problematic ever() listener that caused back button issues
-    // ❌ ever(cartController.cartItems, (_) { update(); });
-    
     print('🔄 CheckoutController initialized');
     print('🛒 Cart items count: ${cartItems.length}');
-  }
-
-  @override
-  void onClose() {
-    print('🔚 CheckoutController closed');
-    super.onClose();
   }
 
   void _loadCustomerInfo() {
@@ -72,8 +56,25 @@ class CheckoutController extends GetxController {
     phone.value = '01936656149';
     email.value = 'customer@example.com';
     address.value = 'Suvodia Aimatola, Gourambha, Bagerhat, Khulna';
-    
-    print('👤 Customer info loaded: ${customerName.value}');
+  }
+
+  // ✅ FIXED: PROPER NAVIGATION TO CHECKOUT
+  void navigateToCheckout() {
+    try {
+      print('🔄 Navigating to checkout screen...');
+      
+      // ✅ CORRECT: Stack maintain করবে
+      Get.to(() => CheckoutScreen());
+      
+      print('✅ Checkout navigation successful');
+    } catch (e) {
+      print('❌ Checkout navigation error: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to navigate to checkout',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   void _checkOtpVerification() {
@@ -108,69 +109,64 @@ class CheckoutController extends GetxController {
     phone.value = phoneNumber;
     address.value = customerAddress;
     email.value = customerEmail;
-    
-    print('📝 Customer info updated: $name');
   }
 
   void updateDeliveryCharge(double charge) {
     deliveryCharge.value = charge;
-    print('🚚 Delivery charge updated: $charge');
   }
 
   void updatePaymentMethod(String method) {
     selectedPaymentMethod.value = method;
-    print('💳 Payment method updated: $method');
   }
 
+  // ✅ IMPROVED: Better validation
   bool validateCustomerInfo() {
-    final isValid = customerName.value.isNotEmpty &&
-           phone.value.isNotEmpty &&
-           address.value.isNotEmpty;
+    if (customerName.value.isEmpty) {
+      Get.snackbar('Error', 'Please enter your name');
+      return false;
+    }
     
-    print('🔍 Customer info validation: $isValid');
-    return isValid;
+    if (phone.value.isEmpty) {
+      Get.snackbar('Error', 'Please enter your phone number');
+      return false;
+    }
+    
+    if (address.value.isEmpty) {
+      Get.snackbar('Error', 'Please enter your address');
+      return false;
+    }
+    
+    return true;
   }
 
   Map<String, dynamic> getOrderSummary() {
-    final summary = {
+    return {
       'subtotal': totalPrice,
       'delivery_charge': deliveryCharge.value,
       'grand_total': grandTotal,
       'item_count': cartItems.length,
       'total_quantity': cartItems.fold(0, (sum, item) => sum + item.quantity),
     };
-    
-    print('📊 Order summary: $summary');
-    return summary;
   }
 
+  // ✅ IMPROVED: Better error handling
   Future<void> placeOrder() async {
     if (cartItems.isEmpty) {
-      print('❌ Cart is empty');
       Get.snackbar(
-        'Error',
-        'Your cart is empty',
+        'Cart Empty',
+        'Please add items to your cart before placing order',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.orange,
         colorText: Colors.white,
       );
       return;
     }
 
     if (!validateCustomerInfo()) {
-      print('❌ Customer info invalid');
-      Get.snackbar(
-        'Error',
-        'Please fill all customer information',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
       return;
     }
 
     isButtonLoading.value = true;
-    print('🚀 Starting order placement process...');
 
     try {
       final response = await checkoutRepository.placeOrder(
@@ -185,7 +181,12 @@ class CheckoutController extends GetxController {
       );
 
       if (response.success) {
-        print('✅ Order placed successfully: ${response.orderId}');
+        // Clear cart after successful order
+        cartController.clearCart();
+
+        // Navigate to Order Success Screen
+        Get.offAll(() => const OrderSuccessScreen());
+        
         Get.snackbar(
           'Order Placed! 🎉',
           'Your order #${response.orderId} has been placed successfully',
@@ -194,14 +195,6 @@ class CheckoutController extends GetxController {
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
-
-        // Clear cart after successful order
-        cartController.clearCart();
-        print('🛒 Cart cleared after successful order');
-
-        // Navigate to Order Success Screen
-        Get.offAll(() => const OrderSuccessScreen());
-        print('🎊 Navigated to order success screen');
       } else {
         throw Exception(response.message ?? 'Failed to place order');
       }
@@ -209,14 +202,30 @@ class CheckoutController extends GetxController {
       print('❌ Order placement error: $e');
       Get.snackbar(
         'Order Failed',
-        'Failed to place order: ${e.toString()}',
+        'Failed to place order. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
     } finally {
       isButtonLoading.value = false;
-      print('🔄 Button loading state reset');
     }
+  }
+
+  // ✅ NEW: Check if cart has items
+  bool get hasCartItems => cartItems.isNotEmpty;
+
+  // ✅ NEW: Get cart items count
+  int get cartItemsCount => cartItems.length;
+
+  // ✅ NEW: Clear all data
+  void clearAllData() {
+    customerName.value = '';
+    phone.value = '';
+    address.value = '';
+    email.value = '';
+    isVerified.value = false;
+    userEmail.value = '';
+    userPhone.value = '';
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/view/chek_out_view.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/view/registrtion_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/controller/login_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/forgot_password.dart';
-import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/sign_up_screen/sign_up_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -361,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           const Text("অ্যাকাউন্ট নেই? "),
           GestureDetector(
-            onTap: () => Get.to(() => const SignUpScreen()),
+            onTap: () => Get.offAll(() => const SignUpScreen()),
             child: Text(
               "এখানে রেজিস্ট্রেশন করুন",
               style: TextStyle(

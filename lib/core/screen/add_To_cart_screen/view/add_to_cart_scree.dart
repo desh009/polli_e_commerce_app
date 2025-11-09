@@ -292,7 +292,7 @@ class CartScreen extends StatelessWidget {
     // ✅ ALWAYS clear and set pending action
     authController.pendingAction = () {
       print('🎯 PENDING ACTION EXECUTED: Navigating to CheckoutScreen');
-      Get.offAll(() => CheckoutScreen());
+      Get.to(() => CheckoutScreen());
     };
 
     if (!authController.isLoggedIn.value) {

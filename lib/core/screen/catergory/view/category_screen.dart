@@ -225,6 +225,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppColors.primary,
         title: Obx(
           () => Text(
@@ -783,7 +784,7 @@ void _addToCart(ProductModel product) {
             "originalPrice": product.price, // ✅ নতুন model property
             "unit": product.unitText, // ✅ নতুন model property
           },
-          productId: product.id,
+          productId: product.id, productName: '',
         ),
       ),
     );

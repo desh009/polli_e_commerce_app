@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/cart_item/cart_item.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/view/add_to_cart_scree.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/controller/chek_out_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/view/chek_out_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/controller/login_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/view/Login_screen.dart';
@@ -16,7 +17,7 @@ class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({
     super.key,
     required this.productId,
-    required Map<String, Object> product,
+    required Map<String, Object> product, required String productName,
   });
 
   @override
@@ -40,6 +41,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     //     _checkPendingActionAfterLogin();
     //   }
     // });
+  }
+
+  // Product screen বা cart screen থেকে
+  void proceedToCheckout() {
+    print('🛒 Proceeding to checkout...');
+
+    // ✅ CORRECT: Stack maintain করবে
+    Get.find<CheckoutController>().navigateToCheckout();
+
+    // ❌ WRONG: Back button কাজ করবে না
+    // Get.offAll(() => CheckoutScreen());
   }
 
   void _loadProduct() {
@@ -85,65 +97,72 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       colorText: Colors.white,
     );
   }
-// ProductDetailsScreen er _buyNow method e alternative approach
-void _buyNow() {
-  final product = productController.currentProduct;
-  if (product == null) return;
 
-  print('🛒 === BUY NOW CLICKED ===');
-  print('📦 Product: ${product.title}');
-  print('🔐 User logged in: ${authController.isLoggedIn.value}');
+  // ProductDetailsScreen er _buyNow method e alternative approach
+  void _buyNow() {
+    final product = productController.currentProduct;
+    if (product == null) return;
 
-  // ✅ Create cart item
-  final item = CartItem(
-    id: product.id,
-    name: product.title,
-    category: productController.mainCategoryName,
-    price: double.parse(product.price),
-    quantity: 1,
-    imagePath: product.fixedImageUrl, 
-  );
+    print('🛒 === BUY NOW CLICKED ===');
+    print('📦 Product: ${product.title}');
+    print('🔐 User logged in: ${authController.isLoggedIn.value}');
 
-  // ✅ Buy Now এর জন্য Login required
-  if (!authController.isLoggedIn.value) {
-    print('🔐 User not logged in, setting up pending action...');
-    
-    // ✅ SIMPLE APPROACH: Direct navigation after login
-    authController.pendingAction = () {
-      print('🎯 === EXECUTING PENDING ACTION ===');
-      
-      // Clear cart and add product
-      cartController.clearCart();
-      cartController.addToCart(item);
-      
-      // Navigate to checkout DIRECTLY
-      Get.offAll(() => CheckoutScreen());
-      
-      print('🎊 Navigated to checkout screen');
-    };
-    
-    // ✅ Login screen এ navigate করুন
-    Get.to(() => LoginScreen(), arguments: {
-      'from': 'buy_now',
-      'product_id': product.id,
-      'product_name': product.title,
-    });
-    
-    return;
+    // ✅ Create cart item
+    final item = CartItem(
+      id: product.id,
+      name: product.title,
+      category: productController.mainCategoryName,
+      price: double.parse(product.price),
+      quantity: 1,
+      imagePath: product.fixedImageUrl,
+    );
+
+    // ✅ Buy Now এর জন্য Login required
+    if (!authController.isLoggedIn.value) {
+      print('🔐 User not logged in, setting up pending action...');
+
+      // ✅ SIMPLE APPROACH: Direct navigation after login
+      authController.pendingAction = () {
+        print('🎯 === EXECUTING PENDING ACTION ===');
+
+        // Clear cart and add product
+        cartController.clearCart();
+        cartController.addToCart(item);
+
+        // Navigate to checkout DIRECTLY
+        Get.to(() => CheckoutScreen());
+
+        print('🎊 Navigated to checkout screen');
+      };
+
+      // ✅ Login screen এ navigate করুন
+      Get.to(
+        () => LoginScreen(),
+        arguments: {
+          'from': 'buy_now',
+          'product_id': product.id,
+          'product_name': product.title,
+        },
+      );
+
+      return;
+    }
+
+    // ✅ User logged in থাকলে CheckoutScreen-এ navigate করুন
+    print('✅ User is logged in, proceeding to checkout directly');
+    _navigateToCheckout(product, item);
   }
 
-  // ✅ User logged in থাকলে CheckoutScreen-এ navigate করুন
-  print('✅ User is logged in, proceeding to checkout directly');
-  _navigateToCheckout(product, item);
-}
-
+  // ProductDetailsScreen এর _buyNow method এ
   void _navigateToCheckout(SingleProductModel product, CartItem item) {
     // ✅ Clear cart and add product
     cartController.clearCart();
     cartController.addToCart(item);
 
-    // ✅ Navigate to checkout
-    Get.offAll(() => CheckoutScreen());
+    // ✅ CORRECT: Stack maintain করবে কিন্তু clear cart সহ
+    Get.to(() => CheckoutScreen());
+
+    print('🎯 Navigated to Checkout from Product Details');
 
     Get.snackbar(
       "Proceed to Checkout 🛒",
@@ -158,6 +177,7 @@ void _buyNow() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Obx(
           () => Text(
             productController.currentProduct?.title ?? 'Product Details',
