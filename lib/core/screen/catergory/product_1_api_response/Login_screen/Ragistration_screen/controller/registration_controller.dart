@@ -25,17 +25,14 @@ class RegistrationController extends GetxController {
   var isLoading = false.obs;
   var isPasswordVisible = false.obs;
   var isConfirmPasswordVisible = false.obs;
-  var isWaitingForEmailApproval = false.obs;
+  var isWaitingForApproval = false.obs;
   var emailApprovalChecked = false.obs;
 
   var registrationData = Rx<RegistrationResponse?>(null);
   
-  // ✅ FIXED: For auto approval check from SignUpScreen
-  var isWaitingForApproval = false.obs;
   var approvalCheckCount = 0.obs;
-  final int maxApprovalChecks = 30; // 5 minutes
+  final int maxApprovalChecks = 30;
 
-  // ✅ FIXED: Constructor parameter
   RegistrationController(this._repository);
 
   @override
@@ -56,9 +53,8 @@ class RegistrationController extends GetxController {
     super.onClose();
   }
 
-  // User Registration Method
+  // ✅ FIXED: User Registration Method - Check email verification status
   Future<void> registerUser() async {
-    // Validation
     if (!_validateForm()) {
       return;
     }
@@ -80,27 +76,19 @@ class RegistrationController extends GetxController {
       registrationData.value = response;
 
       if (response.isSuccess) {
-        print('✅ Registration submitted: ${response.user.fullName}');
-        print('📧 Email verification required: ${response.user.isEmailVerified}');
+        print('✅ Registration API response received');
+        print('📧 Email verification status: ${response.user.isEmailVerified}');
         
-        // Save user data and token
-        _saveUserData(response);
-        
-        // ✅ FIXED: Show success message but indicate approval pending
-        Get.snackbar(
-          "রেজিস্ট্রেশন সাবমিট হয়েছে ✅",
-          "ইমেইল ভেরিফিকেশন লিংক পাঠানো হয়েছে। লিংক এপ্রুভ করার পরই রেজিস্ট্রেশন কনফার্ম হবে।",
-          backgroundColor: Colors.blue,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 5),
-        );
-
-        // ✅ FIXED: Start waiting for approval
-        isWaitingForApproval.value = true;
-        approvalCheckCount.value = 0;
-        
+        // ✅ FIXED: Check if email is verified before proceeding
+        if (response.user.isEmailVerified == true) {
+          print('🎉 Email already verified - completing registration');
+          _handleSuccessfulRegistration(response);
+        } else {
+          print('⏳ Email verification required - waiting for approval');
+          _handlePendingVerification(response);
+        }
       } else {
-        throw Exception(response.message);
+        throw Exception(response.message ?? 'Registration failed');
       }
 
     } catch (e) {
@@ -117,22 +105,51 @@ class RegistrationController extends GetxController {
     }
   }
 
-  // ✅ FIXED: Check email approval status (for auto check)
+  // ✅ FIXED: Handle successful registration (email already verified)
+  void _handleSuccessfulRegistration(RegistrationResponse response) {
+    // Save user data and token
+    _saveUserData(response);
+    
+    // Set approval status to false since email is already verified
+    isWaitingForApproval.value = false;
+    emailApprovalChecked.value = true;
+    
+    print('✅ Registration completed successfully - user can login immediately');
+  }
+
+  // ✅ FIXED: Handle pending verification (email not verified)
+  void _handlePendingVerification(RegistrationResponse response) {
+    // ❌ DON'T save user data yet - wait for email verification
+    // _saveUserData(response); // REMOVED
+    
+    // ✅ ONLY set waiting status
+    isWaitingForApproval.value = true;
+    emailApprovalChecked.value = false;
+    approvalCheckCount.value = 0;
+    
+    print('⏳ Registration pending - waiting for email verification');
+  }
+
+  // ✅ FIXED: Check email approval status
   Future<bool> checkEmailApprovalStatus() async {
     try {
       final email = emailController.text.trim();
       print('🔍 Checking email approval status for: $email');
       
-      // TODO: Replace with actual API call
-      // final response = await _repository.checkApprovalStatus(email: email);
-      // return response.isApproved;
+      // TODO: Replace with actual API call to check verification status
+      // final isApproved = await _repository.checkEmailApprovalStatus(email: email);
       
-      // ✅ FIXED: Demo logic - approve after 3 checks
-      bool isApproved = approvalCheckCount.value >= 3;
+      // ✅ FIXED: Demo logic - simulate API call delay and check
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // In real scenario, this would come from API
+      bool isApproved = approvalCheckCount.value >= 2; // Approve after 2 checks for demo
       
       if (isApproved) {
         print('🎉 Email approved for: $email');
         _handleEmailApprovalSuccess();
+      } else {
+        print('⏳ Email still pending approval for: $email');
       }
       
       return isApproved;
@@ -145,35 +162,36 @@ class RegistrationController extends GetxController {
 
   // ✅ FIXED: Handle email approval success
   void _handleEmailApprovalSuccess() {
+    // Now save user data since email is verified
+    if (registrationData.value != null) {
+      _saveUserData(registrationData.value!);
+    }
+    
     isWaitingForApproval.value = false;
-    isWaitingForEmailApproval.value = false;
     emailApprovalChecked.value = true;
     
-    Get.snackbar(
-      "রেজিস্ট্রেশন কনফার্ম হয়েছে! 🎉",
-      "আপনার ইমেইল ভেরিফিকেশন সফল হয়েছে। এখন লগইন করতে পারেন।",
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 5),
-    );
-    
-    print('✅ Email approval successful - registration confirmed');
+    print('✅ Email approval successful - registration confirmed and user data saved');
   }
 
-  // ✅ FIXED: Start auto approval check (called from SignUpScreen)
-  void startAutoApprovalCheck() {
-    isWaitingForApproval.value = true;
-    approvalCheckCount.value = 0;
-    
-    print('🔄 Starting auto approval check...');
-  }
-
-  // ✅ FIXED: Stop auto approval check
-  void stopAutoApprovalCheck() {
-    isWaitingForApproval.value = false;
-    approvalCheckCount.value = 0;
-    
-    print('🛑 Stopped auto approval check');
+  // ✅ FIXED: Save user data ONLY after email verification
+  void _saveUserData(RegistrationResponse response) {
+    try {
+      // Save token for future API calls
+      _storage.write('auth_token', response.token);
+      _storage.write('user_data', response.user.toJson());
+      
+      // Update auth controller
+      _authController.authToken.value = response.token;
+      _authController.isLoggedIn.value = true;
+      _authController.epicUserData.value = response.user as EpicUserData;
+      
+      print('✅ User data saved after email verification');
+      print('🔐 Token: ${response.token}');
+      print('👤 User: ${response.user.fullName}');
+      print('📧 Email verified: ${response.user.isEmailVerified}');
+    } catch (e) {
+      print('❌ Error saving user data: $e');
+    }
   }
 
   // ✅ FIXED: Form Validation
@@ -209,25 +227,18 @@ class RegistrationController extends GetxController {
     return true;
   }
 
-  // ✅ FIXED: Save user data after registration
-  void _saveUserData(RegistrationResponse response) {
-    try {
-      // Save token for future API calls
-      _storage.write('auth_token', response.token);
-      _storage.write('user_data', response.user.toJson());
-      
-      // Update auth controller
-      _authController.authToken.value = response.token;
-      _authController.isLoggedIn.value = true;
-      _authController.epicUserData.value = response.user as EpicUserData;
-      
-      print('✅ User data saved after registration');
-      print('🔐 Token: ${response.token}');
-      print('👤 User: ${response.user.fullName}');
-      print('📧 Email verified: ${response.user.isEmailVerified}');
-    } catch (e) {
-      print('❌ Error saving user data: $e');
-    }
+  // Start auto approval check
+  void startAutoApprovalCheck() {
+    isWaitingForApproval.value = true;
+    approvalCheckCount.value = 0;
+    print('🔄 Starting auto approval check...');
+  }
+
+  // Stop auto approval check
+  void stopAutoApprovalCheck() {
+    isWaitingForApproval.value = false;
+    approvalCheckCount.value = 0;
+    print('🛑 Stopped auto approval check');
   }
 
   // Toggle password visibility
@@ -261,40 +272,30 @@ class RegistrationController extends GetxController {
           colorText: Colors.white,
         );
       } else {
-        Get.snackbar(
-          "ব্যর্থ",
-          "লিংক পাঠানো যায়নি",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        Get.snackbar("ব্যর্থ", "লিংক পাঠানো যায়নি", backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
       print('❌ Resend verification code error: $e');
-      Get.snackbar(
-        "ত্রুটি",
-        "লিংক পাঠানো যায়নি: $e",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      Get.snackbar("ত্রুটি", "লিংক পাঠানো যায়নি: $e", backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
 
-  // ✅ FIXED: Get current user email for approval check
+  // Get current user email for approval check
   String get currentUserEmail => emailController.text.trim();
 
-  // ✅ FIXED: Increment approval check count
+  // Increment approval check count
   void incrementApprovalCheck() {
     approvalCheckCount.value++;
     print('📊 Approval check count: ${approvalCheckCount.value}');
   }
 
-  // ✅ FIXED: Get approval progress
+  // Get approval progress
   double get approvalProgress => approvalCheckCount.value / maxApprovalChecks;
 
-  // ✅ FIXED: Check if approval timed out
+  // Check if approval timed out
   bool get isApprovalTimedOut => approvalCheckCount.value >= maxApprovalChecks;
 
-  // ✅ NEW: Reset form data
+  // Reset form data
   void resetForm() {
     firstNameController.clear();
     lastNameController.clear();
@@ -306,13 +307,21 @@ class RegistrationController extends GetxController {
     registrationData.value = null;
     isWaitingForApproval.value = false;
     approvalCheckCount.value = 0;
+    emailApprovalChecked.value = false;
   }
 
-  // ✅ NEW: Check if user can proceed (email approved)
+  // Check if user can proceed (email approved)
   bool get canProceedToLogin => emailApprovalChecked.value;
 
-  // ✅ NEW: Manual approval for testing
+  // Manual approval for testing
   void manuallyApproveEmail() {
-    _handleEmailApprovalSuccess();
+    if (registrationData.value != null) {
+      _handleEmailApprovalSuccess();
+    } else {
+      // For demo purposes, create a mock response
+      Get.snackbar("ডেমো অ্যাপ্রুভ", "ম্যানুয়ালি ইমেইল অ্যাপ্রুভ করা হয়েছে", backgroundColor: Colors.green);
+      emailApprovalChecked.value = true;
+      isWaitingForApproval.value = false;
+    }
   }
 }

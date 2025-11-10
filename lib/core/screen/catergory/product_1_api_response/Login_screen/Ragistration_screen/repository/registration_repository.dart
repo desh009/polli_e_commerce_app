@@ -6,7 +6,6 @@ import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_respons
 class RegistrationRepository {
   final NetworkClient networkClient;
 
-  // ✅ FIXED: Correct constructor
   RegistrationRepository(NetworkClient find, {required this.networkClient});
 
   Future<RegistrationResponse> registerUser({
@@ -32,7 +31,7 @@ class RegistrationRepository {
         'email': email,
         'password': password,
         'password_confirmation': passwordConfirmation,
-        'device_name': 'mobile', // Add if required by your API
+        'device_name': 'mobile',
       };
 
       print('📦 Request Body: $requestBody');
@@ -46,10 +45,13 @@ class RegistrationRepository {
       print('📄 Response Data: ${response.responseData}');
 
       if (response.isSuccess) {
-        print('✅ Registration successful');
-        final registrationResponse = RegistrationResponse.fromJson(
-          response.responseData!,
-        );
+        print('✅ Registration API call successful');
+        final registrationResponse = RegistrationResponse.fromJson(response.responseData!);
+        
+        // ✅ FIXED: Log verification status
+        print('🔐 User email verified: ${registrationResponse.user.isEmailVerified}');
+        print('📝 Response message: ${registrationResponse.message}');
+        
         return registrationResponse;
       } else {
         print('❌ Registration failed: ${response.errorMessage}');
@@ -61,11 +63,12 @@ class RegistrationRepository {
     }
   }
 
-  // ✅ FIXED: Email approval status check
+  // ✅ FIXED: Email approval status check - ACTUAL API CALL
   Future<bool> checkEmailApprovalStatus({required String email}) async {
     try {
       print('🔍 Checking email approval status for: $email');
       
+      // TODO: Replace with your actual API endpoint
       final response = await networkClient.getRequest(
         '${Url.baseUrl}/api/check-approval-status?email=$email',
       );
@@ -74,11 +77,12 @@ class RegistrationRepository {
         final data = response.responseData;
         print('📧 Approval check response: $data');
         
-        // Adjust according to your API response structure
+        // ✅ FIXED: Adjust according to your actual API response structure
         bool isApproved = data?['approved'] == true || 
                          data?['email_verified'] == true ||
                          data?['status'] == 'approved' ||
-                         data?['is_verified'] == true;
+                         data?['is_verified'] == true ||
+                         data?['verified'] == true;
         
         print('✅ Email approval status: $isApproved');
         return isApproved;
@@ -92,7 +96,7 @@ class RegistrationRepository {
     }
   }
 
-  // ✅ FIXED: Resend verification code
+  // Resend verification code
   Future<bool> resendVerificationCode({required String email}) async {
     try {
       print('📧 Resending verification code to: $email');
@@ -115,7 +119,7 @@ class RegistrationRepository {
     }
   }
 
-  // ✅ NEW: Verify email with token (if your API has this)
+  // Verify email with token
   Future<bool> verifyEmail({required String token}) async {
     try {
       print('🔐 Verifying email with token...');
