@@ -42,7 +42,7 @@ abstract class Routes {
     static const FAVOURITE = _Paths.FAVOURITE;
 
 
-
+static const PROFILE_UPDATE = _Paths.PROFILE_UPDATE;
 static const PRODUCT_DETAILS = _Paths.PRODUCT_DETAILS;
     static const DELIVERY_INFO = _Paths.DELIVERY_INFO;
   static const AUTHENTIC_PRODUCTS = _Paths.AUTHENTIC_PRODUCTS;
@@ -89,6 +89,7 @@ static const FAVOURITE = '/favourite';
   static const REGISTRATION = '/registration';
   static const EMAIL_VERIFICATION = '/email-verification';
 
+  static const PROFILE_UPDATE = '/profile-update';
   static const DELIVERY_INFO = '/delivery-info';
   static const AUTHENTIC_PRODUCTS = '/authentic-products';
   static const CUSTOMER_SUPPORT = '/customer-support';
