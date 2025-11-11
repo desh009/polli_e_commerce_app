@@ -6,12 +6,13 @@ import 'package:polli_e_commerce_app/moduls/Log_out/view/logout_view.dart';
 import 'package:polli_e_commerce_app/moduls/main_layout/controller/main_layout_controller.dart';
 import 'package:polli_e_commerce_app/moduls/my_order/bindings/my_order_bindings.dart';
 import 'package:polli_e_commerce_app/moduls/my_order/view/my_order_view.dart';
-import 'package:polli_e_commerce_app/moduls/my_wishlist/binder/my_wish_list_binder.dart';
-import 'package:polli_e_commerce_app/moduls/my_wishlist/view/my_wish_list_view.dart';
+
 import 'package:polli_e_commerce_app/moduls/profile/binder/profile_binder.dart';
 import 'package:polli_e_commerce_app/moduls/profile/view/profile_view.dart';
 import 'package:polli_e_commerce_app/moduls/settings/settings_binder/setings_binder.dart';
 import 'package:polli_e_commerce_app/moduls/settings/view/settings_view.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/binder/favourite_page_binder.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favourite_pages.dart';
 import 'package:polli_e_commerce_app/ui/home_page/bindings/home_page_bindings.dart';
 import 'package:polli_e_commerce_app/ui/home_page/view/home_page.dart';
 
@@ -34,8 +35,8 @@ class MainLayoutView extends GetView<MainLayoutController> {
     DrawerItem(
       title: "Wish List",
       icon: Icons.favorite,
-      page: WishlistView(),
-      binding: WishlistBinding(),
+      page: FavouritePage(),
+      binding: FavouriteBinder(),
     ),
     DrawerItem(
       title: "Profile",

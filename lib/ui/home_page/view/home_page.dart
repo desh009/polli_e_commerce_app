@@ -4,11 +4,17 @@ import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/controller/categpory_contrpoller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/view/category_screen.dart';
 import 'package:polli_e_commerce_app/ui/featured_option.dart.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/Authentic/authentic.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/customer_suppport/customer_support.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/delivery/delivery.dart'
+    show DeliveryInfoScreen;
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/controller/favourite_page_controller.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/top_rated_scrren/top_rated_scrren.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Slider_api/controller/slider_api_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/controller/drwaer_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/view/drawer_view.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
-import 'package:polli_e_commerce_app/ui/home_page/favourite_pages/favourite_pages.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favourite_pages.dart';
 import 'package:polli_e_commerce_app/ui/latest_products.dart';
 // ✅ CartController এবং CartScreen import করুন
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/controller/add_to_cart_contoller.dart';
@@ -19,15 +25,32 @@ class HomePage extends StatelessWidget {
 
   // ✅ CORRECT: শুধু Get.find() ব্যবহার করুন
   final drawerController = Get.find<DrawerControllerX>();
-  final categoryController = Get.find<CategoryController>(); // ✅ CategoryController
+  final categoryController = Get.find<CategoryController>();
   final sliderController = Get.find<SliderController>();
-  final cartController = Get.find<CartController>(); // ✅ CartController যোগ করুন
+  final cartController = Get.find<CartController>();
+  final favouriteController = Get.find<FavouriteController>(); // ✅ FIXED
 
   final List<Map<String, dynamic>> features = [
-    {"icon": Icons.local_shipping, "text": "Delivery"},
-    {"icon": Icons.verified, "text": "Authentic"},
-    {"icon": Icons.support_agent, "text": "Support"},
-    {"icon": Icons.star, "text": "Top Rated"},
+    {
+      "icon": Icons.local_shipping,
+      "text": "Delivery",
+      "onTap": () => Get.to(() => DeliveryInfoScreen()),
+    },
+    {
+      "icon": Icons.verified,
+      "text": "Authentic",
+      "onTap": () => Get.to(() => AuthenticProductsScreen()),
+    },
+    {
+      "icon": Icons.support_agent,
+      "text": "Support",
+      "onTap": () => Get.to(() => CustomerSupportScreen()),
+    },
+    {
+      "icon": Icons.star,
+      "text": "Top Rated",
+      "onTap": () => Get.to(() => TopRatedScreen()),
+    },
   ];
 
   final List<Map<String, dynamic>> staticCategories = [
@@ -57,7 +80,6 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: IconThemeData(color: AppColors.primary),
-        
         title: Row(
           children: [
             Expanded(
@@ -71,19 +93,53 @@ class HomePage extends StatelessWidget {
                   ),
                   filled: true,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 12,
+                  ),
                 ),
               ),
             ),
-            
+
             SizedBox(width: 10),
-            IconButton(
-              icon: Icon(Icons.favorite, color: AppColors.primary),
-              onPressed: () {
-                Get.to(() => const FavouritePage());
-              },
+            Obx(
+              () => Stack(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.favorite, color: AppColors.primary),
+                    onPressed: () {
+                      Get.to(() => FavouritePage());
+                    },
+                  ),
+                  if (favouriteController.favouriteCount > 0)
+                    Positioned(
+                      right: 4,
+                      top: 4,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.pink,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          '${favouriteController.favouriteCount}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-            
+
             // ✅ Cart Icon with Badge - CartController ব্যবহার করুন
             Obx(
               () => Stack(
@@ -144,8 +200,10 @@ class HomePage extends StatelessWidget {
 
             /// ================= Slider Section =================
             Obx(() {
-              print('🔄 Slider State - Loading: ${sliderController.isLoading.value}, Count: ${sliderController.sliders.length}');
-              
+              print(
+                '🔄 Slider State - Loading: ${sliderController.isLoading.value}, Count: ${sliderController.sliders.length}',
+              );
+
               if (sliderController.isLoading.value) {
                 return Container(
                   height: 220,
@@ -182,7 +240,8 @@ class HomePage extends StatelessWidget {
                       itemCount: sliderController.sliders.length,
                       itemBuilder: (context, index, realIndex) {
                         final slider = sliderController.sliders[index];
-                        final imageUrl = "https://inventory.growtech.com.bd/${slider.mobileImg}";
+                        final imageUrl =
+                            "https://inventory.growtech.com.bd/${slider.mobileImg}";
 
                         print('🖼️ Loading slider image: $imageUrl');
 
@@ -206,15 +265,16 @@ class HomePage extends StatelessWidget {
                                 imageUrl,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Container(
-                                    height: 220,
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  );
-                                },
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: 220,
+                                        child: Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    },
                                 errorBuilder: (context, error, stackTrace) {
                                   print('❌ Slider image error: $error');
                                   return Container(
@@ -222,13 +282,20 @@ class HomePage extends StatelessWidget {
                                     color: Colors.grey[300],
                                     child: Center(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.broken_image, size: 50, color: Colors.grey[500]),
+                                          Icon(
+                                            Icons.broken_image,
+                                            size: 50,
+                                            color: Colors.grey[500],
+                                          ),
                                           SizedBox(height: 8),
                                           Text(
                                             'ইমেজ লোড হয়নি',
-                                            style: TextStyle(color: Colors.grey[600]),
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -261,24 +328,28 @@ class HomePage extends StatelessWidget {
             SizedBox(height: 20),
 
             /// ================= Features Section =================
+            /// ✅ FIXED: GestureDetector যোগ করা হয়েছে
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: features.map((f) {
-                  return Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: AppColors.primaryLight,
-                        child: Icon(f["icon"], color: AppColors.primary),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        f["text"],
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
+                  return GestureDetector(
+                    onTap: f["onTap"], // ✅ এই লাইন যোগ করুন
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppColors.primaryLight,
+                          child: Icon(f["icon"], color: AppColors.primary),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          f["text"],
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
                   );
                 }).toList(),
               ),
@@ -292,8 +363,10 @@ class HomePage extends StatelessWidget {
               height: 150,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Obx(() {
-                print('🔄 Categories State - Loading: ${categoryController.isLoading.value}, Count: ${categoryController.categories.length}');
-                
+                print(
+                  '🔄 Categories State - Loading: ${categoryController.isLoading.value}, Count: ${categoryController.categories.length}',
+                );
+
                 if (categoryController.isLoading.value) {
                   return Center(child: CircularProgressIndicator());
                 } else if (categoryController.categories.isEmpty) {
@@ -321,14 +394,17 @@ class HomePage extends StatelessWidget {
                     separatorBuilder: (_, __) => SizedBox(width: 10),
                     itemBuilder: (context, index) {
                       final cat = categoryController.categories[index];
-                      
+
                       // ✅ API থেকে আসা categories (Map format)
-                      final categoryName = cat['title']?.toString() ?? 'No Name';
+                      final categoryName =
+                          cat['title']?.toString() ?? 'No Name';
                       final categoryId = cat['id']?.toString() ?? '';
 
                       return InkWell(
                         onTap: () {
-                          print('🎯 Category tapped: $categoryName (ID: $categoryId)');
+                          print(
+                            '🎯 Category tapped: $categoryName (ID: $categoryId)',
+                          );
                           Get.to(
                             () => CategoryScreen(
                               initialSelectedCategory: categoryName,
@@ -417,12 +493,13 @@ class HomePage extends StatelessWidget {
 
   // ✅ Category Image Builder
   Widget _buildCategoryImage(Map<String, dynamic> category) {
-    final hasImage = category['image'] != null && category['image'].toString().isNotEmpty;
-    
+    final hasImage =
+        category['image'] != null && category['image'].toString().isNotEmpty;
+
     if (hasImage) {
       final imageUrl = "https://inventory.growtech.com.bd/${category['image']}";
       print('🖼️ Category image URL: $imageUrl');
-      
+
       return ClipRRect(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12),
@@ -433,9 +510,7 @@ class HomePage extends StatelessWidget {
           fit: BoxFit.cover,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+            return Center(child: CircularProgressIndicator());
           },
           errorBuilder: (context, error, stackTrace) {
             return _buildCategoryPlaceholder();
@@ -450,11 +525,7 @@ class HomePage extends StatelessWidget {
   // ✅ Category Placeholder
   Widget _buildCategoryPlaceholder() {
     return Center(
-      child: Icon(
-        Icons.category,
-        color: AppColors.primary,
-        size: 40,
-      ),
+      child: Icon(Icons.category, color: AppColors.primary, size: 40),
     );
   }
 

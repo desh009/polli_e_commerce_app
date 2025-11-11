@@ -4,6 +4,8 @@ import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/control
 import 'package:polli_e_commerce_app/core/screen/catergory/catergory_api/response/category_response.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/view/category_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/binder/favourite_page_binder.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favourite_pages.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/2nd_category_model/2nd_category_model.dart';
 import 'package:polli_e_commerce_app/ui/home_page/view/home_page.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller/2nd_category_controller.dart';
@@ -11,8 +13,7 @@ import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller
 // Import your other modules
 import 'package:polli_e_commerce_app/moduls/my_order/view/my_order_view.dart';
 import 'package:polli_e_commerce_app/moduls/my_order/bindings/my_order_bindings.dart';
-import 'package:polli_e_commerce_app/moduls/my_wishlist/view/my_wish_list_view.dart';
-import 'package:polli_e_commerce_app/moduls/my_wishlist/binder/my_wish_list_binder.dart';
+
 import 'package:polli_e_commerce_app/moduls/profile/view/profile_view.dart';
 import 'package:polli_e_commerce_app/moduls/profile/binder/profile_binder.dart';
 import 'package:polli_e_commerce_app/moduls/settings/view/settings_view.dart';
@@ -419,7 +420,7 @@ Widget _buildSubcategoryIcon(Category2 subCategory) {
           title: const Text("পছন্দের তালিকা"),
           onTap: () {
             Navigator.pop(context);
-            Get.to(() => WishlistView(), binding: WishlistBinding());
+            Get.to(() => FavouritePage(), binding: FavouriteBinder());
           },
         ),
         ListTile(

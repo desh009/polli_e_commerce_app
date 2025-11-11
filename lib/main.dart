@@ -18,6 +18,7 @@ import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/re
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/repository/product_2_repository.dart';
 import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/controller/favourite_page_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Slider_api/controller/slider_api_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Slider_api/repository/slider_api_repository.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller/2nd_category_controller.dart';
@@ -64,6 +65,7 @@ void main() async {
   );
   Get.put<NetworkClient>(apiClient, permanent: true);
   print('✅ NetworkClient registered');
+    Get.lazyPut<FavouriteController>(() => FavouriteController(), fenix: true);
 
   /// 🔹 2. AUTH CONTROLLERS
   Get.put<EpicAuthController>(EpicAuthController(), permanent: true);

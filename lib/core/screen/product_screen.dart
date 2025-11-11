@@ -1,4 +1,4 @@
-// lib/core/screen/product_details_screen.dart
+// lib/core/screen/product_details_screen.dart - COMPLETE FIXED VERSION
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polli_e_commerce_app/core/screen/add_To_cart_screen/cart_item/cart_item.dart';
@@ -10,14 +10,19 @@ import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_respons
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/view/Login_screen.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_response.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/controller/favourite_page_controller.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favourite_pages.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final int productId;
+  final Map<String, Object> product;
+  final String productName;
 
   const ProductDetailsScreen({
     super.key,
     required this.productId,
-    required Map<String, Object> product, required String productName,
+    required this.product,
+    required this.productName, required Map<String, dynamic> productData,
   });
 
   @override
@@ -28,30 +33,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   final ProductDetailController productController = Get.find();
   final EpicAuthController authController = Get.find();
   final CartController cartController = Get.find();
+  late final FavouriteController favouriteController;
 
   @override
   void initState() {
     super.initState();
+    if (Get.isRegistered<FavouriteController>()) {
+      favouriteController = Get.find<FavouriteController>();
+    } else {
+      favouriteController = Get.put(FavouriteController());
+    }
     _loadProduct();
-
-    // ✅ Listen for login status changes
-    // ever(authController.isLoggedIn, (loggedIn) {
-    //   if (loggedIn) {
-    //     print('🔄 Login status changed to: $loggedIn');
-    //     _checkPendingActionAfterLogin();
-    //   }
-    // });
-  }
-
-  // Product screen বা cart screen থেকে
-  void proceedToCheckout() {
-    print('🛒 Proceeding to checkout...');
-
-    // ✅ CORRECT: Stack maintain করবে
-    Get.find<CheckoutController>().navigateToCheckout();
-
-    // ❌ WRONG: Back button কাজ করবে না
-    // Get.offAll(() => CheckoutScreen());
   }
 
   void _loadProduct() {
@@ -59,20 +51,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       productController.loadProductDetail(widget.productId);
     });
   }
-
-  // void _checkPendingActionAfterLogin() {
-  //   print('🔍 Checking for pending action after login...');
-  //   if (authController.pendingAction != null) {
-  //     print('🎯 Pending action found, executing...');
-  //     Future.delayed(Duration(milliseconds: 1000), () {
-  //       authController.pendingAction!();
-  //       authController.pendingAction = null;
-  //       print('✅ Pending action executed and cleared');
-  //     });
-  //   } else {
-  //     print('💡 No pending action found after login');
-  //   }
-  // }
 
   void _addToCart() {
     final product = productController.currentProduct;
@@ -98,7 +76,32 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  // ProductDetailsScreen er _buyNow method e alternative approach
+  void _toggleFavourite() {
+    final product = productController.currentProduct;
+    if (product == null) return;
+
+    print('🎯 TOGGLE FAVOURITE: ${product.title}');
+
+    // ✅ FIXED: Correct parameters pass করুন
+    favouriteController.toggleFavourite(
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.fixedImageUrl,
+      category: productController.mainCategoryName,
+      description: product.description,
+      hasDiscount: product.hasDiscount,
+      discountPrice: productController.displayPrice,
+    );
+
+    // Force UI update
+    setState(() {});
+  }
+
+  void _navigateToFavourites() {
+    Get.to(() => FavouritePage());
+  }
+
   void _buyNow() {
     final product = productController.currentProduct;
     if (product == null) return;
@@ -153,7 +156,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     _navigateToCheckout(product, item);
   }
 
-  // ProductDetailsScreen এর _buyNow method এ
   void _navigateToCheckout(SingleProductModel product, CartItem item) {
     // ✅ Clear cart and add product
     cartController.clearCart();
@@ -185,11 +187,46 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
         backgroundColor: Colors.green,
         actions: [
+          // ✅ Favourite Icon with Badge
           Obx(
             () => Stack(
               children: [
                 IconButton(
-                  icon: Icon(Icons.shopping_cart),
+                  icon: Icon(Icons.favorite, color: Colors.white),
+                  onPressed: _navigateToFavourites,
+                ),
+                if (favouriteController.favouriteCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.pink,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        '${favouriteController.favouriteCount}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // ✅ Cart Icon with Badge
+          Obx(
+            () => Stack(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.shopping_cart, color: Colors.white),
                   onPressed: () {
                     Get.to(() => CartScreen(product: {}));
                   },
@@ -218,10 +255,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ),
               ],
             ),
-          ),
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () => productController.refreshProduct(widget.productId),
           ),
         ],
       ),
@@ -264,17 +297,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         }
 
         final product = productController.currentProduct!;
+        final isFavourite = favouriteController.isFavourite(product.id);
 
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                height: 300,
-                child: Stack(
-                  children: [
-                    Image.network(
+              // Product Image Section with Favourite Button
+              Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 300,
+                    child: Image.network(
                       product.fixedImageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
@@ -299,31 +334,61 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         );
                       },
                     ),
-                    if (product.hasDiscount)
-                      Positioned(
-                        top: 16,
-                        left: 16,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${product.discountPercent}% OFF',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                  ),
+
+                  // Discount Badge
+                  if (product.hasDiscount)
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${product.discountPercent}% OFF',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+
+                  // ✅ Favourite Button on Image - শুধু এখানে
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: GestureDetector(
+                      onTap: _toggleFavourite,
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isFavourite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavourite ? Colors.pink : Colors.grey,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               Padding(
@@ -331,6 +396,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Product Title - ❌ Favourite Icon Remove from here
                     Text(
                       product.title,
                       style: TextStyle(
@@ -349,6 +415,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     SizedBox(height: 16),
 
+                    // Price Section
                     Row(
                       children: [
                         Text(
@@ -375,6 +442,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     SizedBox(height: 20),
 
+                    // Stock Status
                     Container(
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -418,6 +486,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     SizedBox(height: 20),
 
+                    // Description
                     Text(
                       "Description:",
                       style: TextStyle(
@@ -433,6 +502,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     SizedBox(height: 20),
 
+                    // Product Details
                     Text(
                       "Product Details:",
                       style: TextStyle(
@@ -452,6 +522,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     SizedBox(height: 30),
 
+                    // Action Buttons
                     Row(
                       children: [
                         Expanded(
@@ -507,6 +578,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ],
                     ),
 
+                    // User Status
                     SizedBox(height: 10),
                     Obx(
                       () => Row(
@@ -537,6 +609,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
 
+                    // View Cart Button
                     SizedBox(height: 10),
                     if (cartController.totalItems > 0)
                       Center(

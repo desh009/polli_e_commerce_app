@@ -72,13 +72,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
       print('🔄 Starting registration process...');
 
       // Set data to registration controller
-      _registrationController.firstNameController.text = _firstNameController.text.trim();
-      _registrationController.lastNameController.text = _lastNameController.text.trim();
-      _registrationController.usernameController.text = _usernameController.text.trim();
-      _registrationController.emailController.text = _emailController.text.trim();
-      _registrationController.phoneController.text = _phoneController.text.trim();
-      _registrationController.passwordController.text = _passwordController.text.trim();
-      _registrationController.confirmPasswordController.text = _confirmPasswordController.text.trim();
+      _registrationController.firstNameController.text = _firstNameController
+          .text
+          .trim();
+      _registrationController.lastNameController.text = _lastNameController.text
+          .trim();
+      _registrationController.usernameController.text = _usernameController.text
+          .trim();
+      _registrationController.emailController.text = _emailController.text
+          .trim();
+      _registrationController.phoneController.text = _phoneController.text
+          .trim();
+      _registrationController.passwordController.text = _passwordController.text
+          .trim();
+      _registrationController.confirmPasswordController.text =
+          _confirmPasswordController.text.trim();
 
       // Call registration API
       await _registrationController.registerUser();
@@ -92,7 +100,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         print('✅ Email already verified - registration complete');
         _handleRegistrationSuccess();
       }
-
     } catch (e) {
       print('❌ Registration error: $e');
       Get.snackbar(
@@ -121,10 +128,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       _approvalCheckCount.value++;
 
-      print('🔍 Checking approval status... (${_approvalCheckCount.value}/$_maxApprovalChecks)');
+      print(
+        '🔍 Checking approval status... (${_approvalCheckCount.value}/$_maxApprovalChecks)',
+      );
 
       try {
-        final isApproved = await _registrationController.checkEmailApprovalStatus();
+        final isApproved = await _registrationController
+            .checkEmailApprovalStatus();
 
         if (isApproved) {
           _handleApprovalSuccess();
@@ -233,25 +243,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _navigateToLogin() {
-    _stopApprovalCheck();
-    _registrationController.stopAutoApprovalCheck();
-    Get.back();
-  }
+  // void _navigateToLogin() {
+  //   _stopApprovalCheck();
+  //   _registrationController.stopAutoApprovalCheck();
+  //   Get.back();
+  // }
 
-  void _openEmailApp() {
-    Get.snackbar(
-      "ইমেইল চেক করুন",
-      "আপনার ইমেইল অ্যাপ খুলুন এবং ভেরিফিকেশন লিংকটি ক্লিক করুন",
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
-  }
-
-  void _manualApproveForTesting() {
-    _registrationController.manuallyApproveEmail();
-    _handleApprovalSuccess();
-  }
+  // void _openEmailApp() {
+  //   Get.snackbar(
+  //     "ইমেইল চেক করুন",
+  //     "আপনার ইমেইল অ্যাপ খুলুন এবং ভেরিফিকেশন লিংকটি ক্লিক করুন",
+  //     backgroundColor: Colors.blue,
+  //     colorText: Colors.white,
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -265,24 +270,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: _navigateToLogin,
-                      icon: Icon(
-                        Icons.arrow_back_ios,
-                        color: AppColors.textPrimary,
-                      ),
-                      padding: EdgeInsets.zero,
-                      alignment: Alignment.centerLeft,
-                    ),
-                    Spacer(),
-                    IconButton(
-                      onPressed: _manualApproveForTesting,
-                      icon: Icon(Icons.check_circle, color: Colors.green),
-                      tooltip: 'Manual Approve (Testing)',
-                    ),
-                  ],
+                // ✅ FIXED: Manual Approve Button Removed - শুধু Back Button রাখা হয়েছে
+                IconButton(
+                  onPressed: () {
+                    if (Navigator.canPop(Get.context!)) {
+                      Get.back();
+                    }
+                  },
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    color: AppColors.textPrimary,
+                  ),
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.centerLeft,
                 ),
                 const SizedBox(height: 20),
                 _buildHeader(),
@@ -292,7 +292,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 _buildVerificationNotice(),
                 const SizedBox(height: 16),
                 Obx(
-                  () => _isCheckingApproval.value || _registrationController.isWaitingForApproval.value
+                  () =>
+                      _isCheckingApproval.value ||
+                          _registrationController.isWaitingForApproval.value
                       ? _buildApprovalStatus()
                       : const SizedBox(),
                 ),
@@ -300,7 +302,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 30),
                 Obx(() => _buildSignUpButton()),
                 const SizedBox(height: 20),
-                _buildDemoButton(),
+                // _buildDemoButton(),
                 const SizedBox(height: 30),
                 _buildFooter(),
               ],
@@ -368,7 +370,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           fillColor: AppColors.primaryLight.withOpacity(0.1),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) return 'দয়া করে আপনার উপাধি লিখুন';
+          if (value == null || value.isEmpty)
+            return 'দয়া করে আপনার উপাধি লিখুন';
           return null;
         },
       ),
@@ -388,7 +391,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           fillColor: AppColors.primaryLight.withOpacity(0.1),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) return 'দয়া করে আপনার ইউজারনেম লিখুন';
+          if (value == null || value.isEmpty)
+            return 'দয়া করে আপনার ইউজারনেম লিখুন';
           if (value.length < 4) return 'ইউজারনেম অন্তত ৪ ক্যারেক্টার হতে হবে';
           return null;
         },
@@ -410,8 +414,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         keyboardType: TextInputType.emailAddress,
         validator: (value) {
-          if (value == null || value.isEmpty) return 'দয়া করে আপনার ইমেইল এড্রেস লিখুন';
-          if (!value.contains('@') || !value.contains('.')) return 'দয়া করে সঠিক ইমেইল এড্রেস লিখুন';
+          if (value == null || value.isEmpty)
+            return 'দয়া করে আপনার ইমেইল এড্রেস লিখুন';
+          if (!value.contains('@') || !value.contains('.'))
+            return 'দয়া করে সঠিক ইমেইল এড্রেস লিখুন';
           return null;
         },
       ),
@@ -432,7 +438,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         keyboardType: TextInputType.phone,
         validator: (value) {
-          if (value == null || value.isEmpty) return 'দয়া করে আপনার মোবাইল নম্বর লিখুন';
+          if (value == null || value.isEmpty)
+            return 'দয়া করে আপনার মোবাইল নম্বর লিখুন';
           if (value.length < 11) return 'মোবাইল নম্বর সঠিক নয়';
           return null;
         },
@@ -450,7 +457,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _obscurePassword ? Icons.visibility_off : Icons.visibility,
               color: AppColors.textSecondary,
             ),
-            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           focusedBorder: OutlineInputBorder(
@@ -461,7 +469,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           fillColor: AppColors.primaryLight.withOpacity(0.1),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) return 'দয়া করে আপনার পাসওয়ার্ড লিখুন';
+          if (value == null || value.isEmpty)
+            return 'দয়া করে আপনার পাসওয়ার্ড লিখুন';
           if (value.length < 6) return 'পাসওয়ার্ড অন্তত ৬ ক্যারেক্টার হতে হবে';
           return null;
         },
@@ -479,7 +488,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
               color: AppColors.textSecondary,
             ),
-            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            onPressed: () => setState(
+              () => _obscureConfirmPassword = !_obscureConfirmPassword,
+            ),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           focusedBorder: OutlineInputBorder(
@@ -490,7 +501,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           fillColor: AppColors.primaryLight.withOpacity(0.1),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) return 'দয়া করে পাসওয়ার্ড নিশ্চিত করুন';
+          if (value == null || value.isEmpty)
+            return 'দয়া করে পাসওয়ার্ড নিশ্চিত করুন';
           if (value != _passwordController.text) return 'পাসওয়ার্ড মিলছে না';
           return null;
         },
@@ -566,7 +578,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: LinearProgressIndicator(
                   value: _approvalCheckCount.value / _maxApprovalChecks,
                   backgroundColor: Colors.orange.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade600),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.orange.shade600,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -585,33 +599,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _openEmailApp,
-                  icon: Icon(Icons.open_in_new, size: 16),
-                  label: Text("ইমেইল অ্যাপ খুলুন"),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.orange.shade700,
-                    side: BorderSide(color: Colors.orange.shade400),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _navigateToLogin,
-                  icon: Icon(Icons.login, size: 16),
-                  label: Text("লগইন পেজে যান"),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue.shade700,
-                    side: BorderSide(color: Colors.blue.shade400),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: OutlinedButton.icon(
+          //         onPressed: _openEmailApp,
+          //         icon: Icon(Icons.open_in_new, size: 16),
+          //         label: Text("ইমেইল অ্যাপ খুলুন"),
+          //         style: OutlinedButton.styleFrom(
+          //           foregroundColor: Colors.orange.shade700,
+          //           side: BorderSide(color: Colors.orange.shade400),
+          //         ),
+          //       ),
+          //     ),
+          //     const SizedBox(width: 8),
+          //     Expanded(
+          //       child: OutlinedButton.icon(
+          //         onPressed: _navigateToLogin,
+          //         icon: Icon(Icons.login, size: 16),
+          //         label: Text("লগইন পেজে যান"),
+          //         style: OutlinedButton.styleFrom(
+          //           foregroundColor: Colors.blue.shade700,
+          //           side: BorderSide(color: Colors.blue.shade400),
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
@@ -628,15 +642,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
       Expanded(
         child: Wrap(
           children: [
-            Text("আমি গ্রহণ করছি ", style: TextStyle(color: AppColors.textSecondary)),
+            Text(
+              "আমি গ্রহণ করছি ",
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
             GestureDetector(
-              onTap: () => Get.snackbar("সেবার শর্তাবলী", "শীঘ্রই আসছে", snackPosition: SnackPosition.BOTTOM),
-              child: Text("সেবার শর্তাবলী", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              onTap: () => Get.snackbar(
+                "সেবার শর্তাবলী",
+                "শীঘ্রই আসছে",
+                snackPosition: SnackPosition.BOTTOM,
+              ),
+              child: Text(
+                "সেবার শর্তাবলী",
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             Text(" ও ", style: TextStyle(color: AppColors.textSecondary)),
             GestureDetector(
-              onTap: () => Get.snackbar("গোপনীয়তা নীতি", "শীঘ্রই আসছে", snackPosition: SnackPosition.BOTTOM),
-              child: Text("গোপনীয়তা নীতি", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              onTap: () => Get.snackbar(
+                "গোপনীয়তা নীতি",
+                "শীঘ্রই আসছে",
+                snackPosition: SnackPosition.BOTTOM,
+              ),
+              child: Text(
+                "গোপনীয়তা নীতি",
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
@@ -645,7 +682,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   );
 
   Widget _buildSignUpButton() {
-    if (_isCheckingApproval.value || _registrationController.isWaitingForApproval.value) {
+    if (_isCheckingApproval.value ||
+        _registrationController.isWaitingForApproval.value) {
       return SizedBox(
         width: double.infinity,
         height: 56,
@@ -654,7 +692,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -668,7 +708,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text("ভেরিফিকেশনের জন্য অপেক্ষা...", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                "ভেরিফিকেশনের জন্য অপেক্ষা...",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
         ),
@@ -683,7 +726,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
         ),
         child: _registrationController.isLoading.value
@@ -695,56 +740,86 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : Text("অ্যাকাউন্ট তৈরি করুন", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            : Text(
+                "অ্যাকাউন্ট তৈরি করুন",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
 
-  Widget _buildDemoButton() => SizedBox(
-    width: double.infinity,
-    height: 50,
-    child: OutlinedButton(
-      onPressed: _demoSignUp,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: BorderSide(color: AppColors.primary),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Text("ডেমো তথ্য ব্যবহার করুন (টেস্ট)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-    ),
-  );
+  // Widget _buildDemoButton() => SizedBox(
+  //   width: double.infinity,
+  //   height: 50,
+  //   child: OutlinedButton(
+  //     onPressed: _demoSignUp,
+  //     style: OutlinedButton.styleFrom(
+  //       foregroundColor: AppColors.primary,
+  //       side: BorderSide(color: AppColors.primary),
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     ),
+  //     child: Text(
+  //       "ডেমো তথ্য ব্যবহার করুন (টেস্ট)",
+  //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+  //     ),
+  //   ),
+  // );
 
   Widget _buildFooter() => Column(
     children: [
       Row(
         children: [
           Expanded(child: Divider()),
-          Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("অথবা", style: TextStyle(color: AppColors.textSecondary))),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "অথবা",
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
           Expanded(child: Divider()),
         ],
       ),
       SizedBox(height: 20),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        _buildSocialButton(icon: Icons.g_mobiledata, onPressed: () => Get.snackbar("গুগল সাইন আপ", "শীঘ্রই আসছে")),
-        SizedBox(width: 16),
-        _buildSocialButton(icon: Icons.facebook, onPressed: () => Get.snackbar("ফেসবুক সাইন আপ", "শীঘ্রই আসছে")),
-        SizedBox(width: 16),
-        _buildSocialButton(icon: Icons.phone, onPressed: () => Get.snackbar("ফোন সাইন আপ", "শীঘ্রই আসছে")),
-      ]),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildSocialButton(
+            icon: Icons.g_mobiledata,
+            onPressed: () => Get.snackbar("গুগল সাইন আপ", "শীঘ্রই আসছে"),
+          ),
+          SizedBox(width: 16),
+          _buildSocialButton(
+            icon: Icons.facebook,
+            onPressed: () => Get.snackbar("ফেসবুক সাইন আপ", "শীঘ্রই আসছে"),
+          ),
+          SizedBox(width: 16),
+          _buildSocialButton(
+            icon: Icons.phone,
+            onPressed: () => Get.snackbar("ফোন সাইন আপ", "শীঘ্রই আসছে"),
+          ),
+        ],
+      ),
       SizedBox(height: 30),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text("ইতিমধ্যে অ্যাকাউন্ট আছে? "),
-        GestureDetector(
-          onTap: _navigateToLogin,
-          child: Text("লগইন করুন", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-        ),
-      ]),
+      // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      //   Text("ইতিমধ্যে অ্যাকাউন্ট আছে? "),
+      //   GestureDetector(
+      //     onTap: _navigateToLogin,
+      //     child: Text("লগইন করুন", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+      //   ),
+      // ]),
     ],
   );
 
-  Widget _buildSocialButton({required IconData icon, required VoidCallback onPressed}) => CircleAvatar(
+  Widget _buildSocialButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) => CircleAvatar(
     backgroundColor: AppColors.primaryLight.withOpacity(0.2),
     radius: 24,
-    child: IconButton(onPressed: onPressed, icon: Icon(icon, color: AppColors.primary)),
+    child: IconButton(
+      onPressed: onPressed,
+      icon: Icon(icon, color: AppColors.primary),
+    ),
   );
 }

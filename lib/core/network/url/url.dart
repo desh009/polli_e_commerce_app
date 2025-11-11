@@ -20,6 +20,7 @@ class Url {
   static const String userProfile = "$baseUrl/api/user-profile";
   static const String updateProfile = "$baseUrl/api/update-profile";
   static const String changePassword = "$baseUrl/api/change-password";
+  static const String forgotPassword = "$baseUrl/api/forgot-password"; // ✅ ADD THIS
 
   // 🟢 Category related
   static const String categoryList = "$baseUrl/api/category";
@@ -83,6 +84,8 @@ class Url {
 
 //   // 🟢 Slider related
 //   static const String slider = "$baseUrl/api/slider";
+//   // static String searchProduct(String query) =>
+//   //     "$baseUrl/api/product?search=$query";//       "$baseUrl/api/product?search=$query";
 
 //   // 🟢 Product related
 //   static const String productList = "$baseUrl/api/product";
@@ -114,4 +117,6 @@ class Url {
 //   // 🔍 Search related (যদি থাকে)
 //   static String searchProduct(String query) =>
 //       "$baseUrl/api/product?search=$query";
+
+
 // }

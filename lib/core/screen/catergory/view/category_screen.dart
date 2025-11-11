@@ -10,9 +10,12 @@ import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_respons
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/product_1_response.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/response/repository/product_1_repository.dart';
 import 'package:polli_e_commerce_app/core/screen/product_screen.dart';
-import 'package:polli_e_commerce_app/core/widgets/auth_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/filter_bottom_sheet_screen.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
+
+// Favourite Controller import
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/controller/favourite_page_controller.dart';
+import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favourite_pages.dart';
 
 // Category2 Controller import
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller/2nd_category_controller.dart';
@@ -40,6 +43,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   late final CartController cartController;
   late final ProductController productController;
   late final Category2Controller category2Controller;
+  late final FavouriteController favouriteController; // ✅ Favourite Controller
 
   // UI State
   bool showSortPanel = false;
@@ -105,6 +109,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
         Category2Controller(repository),
         permanent: true,
       );
+    }
+
+    // ✅ Favourite Controller
+    if (Get.isRegistered<FavouriteController>()) {
+      favouriteController = Get.find<FavouriteController>();
+    } else {
+      favouriteController = Get.put(FavouriteController(), permanent: true);
     }
   }
 
@@ -191,6 +202,20 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }
   }
 
+  // ✅ Favourite toggle method
+  void _toggleFavourite(ProductModel product) {
+    favouriteController.toggleFavourite(
+      id: product.id,
+      title: product.title,
+      price: product.price.toString(),
+      image: product.image,
+      category: product.categoryName,
+      description: product.description ?? 'No description available',
+      hasDiscount: product.hasDiscount,
+      discountPrice: product.finalPrice.toString(),
+    );
+  }
+
   List<ProductModel> applySort(List<ProductModel> products) {
     List<ProductModel> sortedList = List.from(products);
     switch (selectedSort) {
@@ -240,16 +265,55 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          // ✅ Favourite Icon with Badge
+          Obx(
+            () => Stack(
+              alignment: Alignment.topRight,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.favorite),
+                  onPressed: () {
+                    Get.to(() => FavouritePage());
+                  },
+                ),
+                if (favouriteController.favouriteCount > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.pink,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '${favouriteController.favouriteCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // ✅ Cart Icon with Badge
           Obx(() {
-            final itemCount =
-                cartController.cartItems.length; // cartItems এর reactive length
+            final itemCount = cartController.cartItems.length;
             return Stack(
               alignment: Alignment.topRight,
               children: [
                 IconButton(
                   icon: const Icon(Icons.shopping_cart),
                   onPressed: () {
-                    // Navigate to Cart Screen
                     Get.to(() => CartScreen(product: {}));
                   },
                 ),
@@ -339,8 +403,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               // Products Grid with Children Categories
               Expanded(
                 child: Obx(() {
-                  final currentCategory =
-                      categoryController.currentCategory.value;
+                  final currentCategory = categoryController.currentCategory.value;
 
                   // Loading State
                   if (productController.isLoading.value) {
@@ -373,8 +436,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () =>
-                                _loadProductsForCategory(currentCategory),
+                            onPressed: () => _loadProductsForCategory(currentCategory),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -406,8 +468,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           Text('অনুগ্রহ করে অন্য ক্যাটেগরি চেষ্টা করুন'),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () =>
-                                categoryController.updateCategory('মসলা', null),
+                            onPressed: () => categoryController.updateCategory('মসলা', null),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -453,39 +514,28 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               Expanded(
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount:
-                                      category2Controller.activeChildren.length,
+                                  itemCount: category2Controller.activeChildren.length,
                                   itemBuilder: (context, index) {
-                                    final child = category2Controller
-                                        .activeChildren[index];
+                                    final child = category2Controller.activeChildren[index];
                                     return GestureDetector(
                                       onTap: () {
-                                        productController
-                                            .loadProductsByCategory(child.id);
+                                        productController.loadProductsByCategory(child.id);
                                         categoryController.updateCategory(
                                           child.title,
                                           null,
                                         );
-                                        category2Controller.selectChildCategory(
-                                          child,
-                                        );
+                                        category2Controller.selectChildCategory(child);
                                       },
                                       child: Container(
                                         width: 100,
-                                        margin: const EdgeInsets.only(
-                                          right: 12,
-                                        ),
+                                        margin: const EdgeInsets.only(right: 12),
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius: BorderRadius.circular(12),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.grey.withOpacity(
-                                                0.2,
-                                              ),
+                                              color: Colors.grey.withOpacity(0.2),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
                                             ),
@@ -496,8 +546,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                           ),
                                         ),
                                         child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             // Child category image
                                             Container(
@@ -512,17 +561,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                                         fit: BoxFit.cover,
                                                         width: 45,
                                                         height: 45,
-                                                        errorBuilder:
-                                                            (
-                                                              context,
-                                                              error,
-                                                              stackTrace,
-                                                            ) => Icon(
-                                                              Icons.category,
-                                                              size: 20,
-                                                              color: AppColors
-                                                                  .primary,
-                                                            ),
+                                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                                          Icons.category,
+                                                          size: 20,
+                                                          color: AppColors.primary,
+                                                        ),
                                                       ),
                                                     )
                                                   : Icon(
@@ -578,13 +621,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       Expanded(
                         child: GridView.builder(
                           padding: const EdgeInsets.all(12),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.75,
-                              ),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.75,
+                          ),
                           itemCount: sortedProducts.length,
                           itemBuilder: (context, index) {
                             final product = sortedProducts[index];
@@ -610,72 +652,128 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildProductCard(ProductModel product) {
+    final isFavourite = favouriteController.isFavourite(product.id);
+    
     return InkWell(
       onTap: () => _navigateToProductDetails(product),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            // Product Image
-            Expanded(
-              flex: 3,
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    product.image, // ✅ নতুন model property
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        size: 40,
-                        color: Colors.grey,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Product Image
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        product.image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
                     ),
+                  ),
+                ),
+
+                // Product Details
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Price Section
+                      _buildPriceSection(product),
+
+                      const SizedBox(height: 4),
+
+                      // Unit Type
+                      Text(
+                        product.unitText,
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      // Add to Cart Button
+                      _buildAddToCartButton(product),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // ✅ Favourite Button
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => _toggleFavourite(product),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    isFavourite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavourite ? Colors.pink : Colors.grey,
+                    size: 20,
                   ),
                 ),
               ),
             ),
 
-            // Product Details
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.title,
+            // Discount Badge
+            if (product.hasDiscount)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${product.discountPercent}% OFF',
                     style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-
-                  // Price Section
-                  _buildPriceSection(product),
-
-                  const SizedBox(height: 4),
-
-                  // Unit Type
-                  Text(
-                    product.unitText, // ✅ নতুন model property
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Add to Cart Button
-                  _buildAddToCartButton(product),
-                ],
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -687,9 +785,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (product.hasDiscount) ...[
-          // ✅ নতুন model property
           Text(
-            '৳${product.price.toStringAsFixed(2)}', // ✅ নতুন model property
+            '৳${product.price.toStringAsFixed(2)}',
             style: const TextStyle(
               color: Colors.grey,
               fontSize: 12,
@@ -697,7 +794,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
           ),
           Text(
-            '৳${product.finalPrice.toStringAsFixed(2)}', // ✅ নতুন model property
+            '৳${product.finalPrice.toStringAsFixed(2)}',
             style: const TextStyle(
               color: Colors.green,
               fontWeight: FontWeight.bold,
@@ -706,7 +803,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ),
         ] else
           Text(
-            '৳${product.price.toStringAsFixed(2)}', // ✅ নতুন model property
+            '৳${product.price.toStringAsFixed(2)}',
             style: const TextStyle(
               color: Colors.green,
               fontWeight: FontWeight.bold,
@@ -722,47 +819,40 @@ class _CategoryScreenState extends State<CategoryScreen> {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: product.isInStock
-              ? AppColors.primary
-              : Colors.grey, // ✅ নতুন model property
+          backgroundColor: product.isInStock ? AppColors.primary : Colors.grey,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        onPressed: product.isInStock
-            ? () => _addToCart(product)
-            : null, // ✅ নতুন model property
+        onPressed: product.isInStock ? () => _addToCart(product) : null,
         child: Text(
-          product.isInStock
-              ? "কার্টে যোগ করুন"
-              : "স্টক নেই", // ✅ নতুন model property
+          product.isInStock ? "কার্টে যোগ করুন" : "স্টক নেই",
           style: const TextStyle(fontSize: 12),
         ),
       ),
     );
   }
 
-void _addToCart(ProductModel product) {
-  final item = CartItem(
-    id: product.id,
-    name: product.title,
-    category: categoryController.currentCategory.value,
-    price: product.finalPrice,
-    quantity: 1,
-    imagePath: product.image,
-  );
+  void _addToCart(ProductModel product) {
+    final item = CartItem(
+      id: product.id,
+      name: product.title,
+      category: categoryController.currentCategory.value,
+      price: product.finalPrice,
+      quantity: 1,
+      imagePath: product.image,
+    );
 
-  cartController.addToCart(item); // সরাসরি যোগ করা
+    cartController.addToCart(item);
 
-  Get.snackbar(
-    "সফল!",
-    "${product.title} কার্টে যোগ করা হয়েছে",
-    snackPosition: SnackPosition.BOTTOM,
-    backgroundColor: Colors.green,
-    colorText: Colors.white,
-  );
-}
-
+    Get.snackbar(
+      "সফল!",
+      "${product.title} কার্টে যোগ করা হয়েছে",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+    );
+  }
 
   void _navigateToProductDetails(ProductModel product) {
     Navigator.push(
@@ -772,19 +862,19 @@ void _addToCart(ProductModel product) {
           product: {
             "id": product.id,
             "name": product.title,
-            "price": product.finalPrice, // ✅ নতুন model property
-            "image": product.image, // ✅ নতুন model property
+            "price": product.finalPrice,
+            "image": product.image,
             "description": product.description ?? '',
-            "category": product.categoryName, // ✅ নতুন model property
-            "discount": product.hasDiscount
-                ? product.discountPrice
-                : 0.0, // ✅ নতুন model property
-            "inStock": product.isInStock, // ✅ নতুন model property
+            "category": product.categoryName,
+            "discount": product.hasDiscount ? product.discountPrice : 0.0,
+            "inStock": product.isInStock,
             "quantity": product.quantity,
-            "originalPrice": product.price, // ✅ নতুন model property
-            "unit": product.unitText, // ✅ নতুন model property
+            "originalPrice": product.price,
+            "unit": product.unitText,
           },
-          productId: product.id, productName: '',
+          productId: product.id,
+          productName: '',
+          productData: {},
         ),
       ),
     );

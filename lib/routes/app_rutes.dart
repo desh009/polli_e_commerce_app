@@ -35,10 +35,19 @@ abstract class Routes {
   static const OTP_VERIFICATION = _Paths.OTP_VERIFICATION;
   static const LOGIN = _Paths.LOGIN;
   static const SIGNUP = _Paths.SIGNUP;
-  
+
   // ✅ নতুন Registration Routes এড করুন
   static const REGISTRATION = _Paths.REGISTRATION;
   static const EMAIL_VERIFICATION = _Paths.EMAIL_VERIFICATION;
+    static const FAVOURITE = _Paths.FAVOURITE;
+
+
+
+static const PRODUCT_DETAILS = _Paths.PRODUCT_DETAILS;
+    static const DELIVERY_INFO = _Paths.DELIVERY_INFO;
+  static const AUTHENTIC_PRODUCTS = _Paths.AUTHENTIC_PRODUCTS;
+  static const CUSTOMER_SUPPORT = _Paths.CUSTOMER_SUPPORT;
+  static const TOP_RATED = _Paths.TOP_RATED;
 }
 
 abstract class _Paths {
@@ -75,8 +84,14 @@ abstract class _Paths {
   static const OTP_VERIFICATION = '/otp-verification';
   static const LOGIN = '/login';
   static const SIGNUP = '/signup';
-  
+static const FAVOURITE = '/favourite';
   // ✅ নতুন Registration Paths এড করুন
   static const REGISTRATION = '/registration';
   static const EMAIL_VERIFICATION = '/email-verification';
+
+  static const DELIVERY_INFO = '/delivery-info';
+  static const AUTHENTIC_PRODUCTS = '/authentic-products';
+  static const CUSTOMER_SUPPORT = '/customer-support';
+  static const TOP_RATED = '/top-rated';
+  static const PRODUCT_DETAILS = '/product-details';
 }
