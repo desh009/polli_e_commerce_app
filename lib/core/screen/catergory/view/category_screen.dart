@@ -727,7 +727,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
             // ✅ Favourite Button
             Positioned(
-              top: 8,
+              bottom: 59,
               right: 8,
               child: GestureDetector(
                 onTap: () => _toggleFavourite(product),

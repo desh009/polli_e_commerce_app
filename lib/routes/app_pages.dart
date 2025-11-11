@@ -20,8 +20,6 @@ import 'package:polli_e_commerce_app/moduls/main_layout/view/main_lay_out_view.d
 import 'package:polli_e_commerce_app/moduls/my_order/bindings/my_order_bindings.dart';
 import 'package:polli_e_commerce_app/moduls/my_order/view/My_order_view.dart';
 
-import 'package:polli_e_commerce_app/moduls/profile/binder/profile_binder.dart';
-import 'package:polli_e_commerce_app/moduls/profile/view/profile_view.dart';
 import 'package:polli_e_commerce_app/moduls/settings/settings_binder/setings_binder.dart';
 import 'package:polli_e_commerce_app/moduls/settings/view/settings_view.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Screens/Authentic/authentic.dart';
@@ -35,6 +33,8 @@ import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favour
 import 'package:polli_e_commerce_app/ui/home_page/Screens/top_rated_scrren/binder/top_reted_binder.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Screens/top_rated_scrren/top_rated_scrren.dart';
 import 'package:polli_e_commerce_app/ui/home_page/bindings/home_page_bindings.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/Screens/profile_screen/binder/profile_update_screen_binder.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/Screens/profile_screen/view/profile_update_screen_view.dart';
 import 'package:polli_e_commerce_app/ui/home_page/view/home_page.dart';
 
 part 'app_rutes.dart';
@@ -54,11 +54,11 @@ class AppPages {
     //   page: () => const IntroView(),
     //   binding: IntroBinding(),
     // ),
-    // GetPage(
-    //   name: _Paths.AUTH,
-    //   page: () => const AuthView(),
-    //   binding: AuthBinding(),
-    // ),
+    GetPage(
+      name: _Paths.PROFILE_UPDATE,
+      page: () => const AdvancedProfileScreen(),
+      binding: ProfileBinding(),
+    ),
     // main.dart এর GetPages তালিকায় এড করুন
     GetPage(
       name: _Paths.CHECKOUT,
@@ -123,7 +123,7 @@ class AppPages {
     // ),
     GetPage(
       name: _Paths.PROFILE,
-      page: () => const ProfileView(),
+      page: () => const AdvancedProfileScreen(),
       binding: ProfileBinding(),
     ),
     GetPage(

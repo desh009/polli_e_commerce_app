@@ -23,6 +23,7 @@ import 'package:polli_e_commerce_app/ui/home_page/Slider_api/controller/slider_a
 import 'package:polli_e_commerce_app/ui/home_page/Slider_api/repository/slider_api_repository.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/controller/2nd_category_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/2nd_category/repository/2nd_category_repository.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/Screens/profile_screen/controller/profile_update_screen_controller.dart';
 import 'package:polli_e_commerce_app/ui/home_page/drawer/controller/drwaer_controller.dart';
 import 'package:polli_e_commerce_app/ui/splash_screen.dart';
 
@@ -65,7 +66,7 @@ void main() async {
   );
   Get.put<NetworkClient>(apiClient, permanent: true);
   print('✅ NetworkClient registered');
-    Get.lazyPut<FavouriteController>(() => FavouriteController(), fenix: true);
+  Get.lazyPut<FavouriteController>(() => FavouriteController(), fenix: true);
 
   /// 🔹 2. AUTH CONTROLLERS
   Get.put<EpicAuthController>(EpicAuthController(), permanent: true);
@@ -104,7 +105,7 @@ void main() async {
     fenix: true,
   );
   print('✅ Category1Repository registered');
-    Get.lazyPut<Category1Controller>(
+  Get.lazyPut<Category1Controller>(
     () => Category1Controller(Get.find<Category1Repository>()),
     fenix: true,
   );
@@ -205,6 +206,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(ProfileXController());
+
     return GetMaterialApp(
       title: 'Palli Swad',
       getPages: AppPages.routes,

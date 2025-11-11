@@ -7,13 +7,13 @@ import 'package:polli_e_commerce_app/moduls/main_layout/controller/main_layout_c
 import 'package:polli_e_commerce_app/moduls/my_order/bindings/my_order_bindings.dart';
 import 'package:polli_e_commerce_app/moduls/my_order/view/my_order_view.dart';
 
-import 'package:polli_e_commerce_app/moduls/profile/binder/profile_binder.dart';
-import 'package:polli_e_commerce_app/moduls/profile/view/profile_view.dart';
 import 'package:polli_e_commerce_app/moduls/settings/settings_binder/setings_binder.dart';
 import 'package:polli_e_commerce_app/moduls/settings/view/settings_view.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/binder/favourite_page_binder.dart';
 import 'package:polli_e_commerce_app/ui/home_page/Screens/favourite_pages/favourite_pages.dart';
 import 'package:polli_e_commerce_app/ui/home_page/bindings/home_page_bindings.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/Screens/profile_screen/binder/profile_update_screen_binder.dart';
+import 'package:polli_e_commerce_app/ui/home_page/drawer/Screens/profile_screen/view/profile_update_screen_view.dart';
 import 'package:polli_e_commerce_app/ui/home_page/view/home_page.dart';
 
 class MainLayoutView extends GetView<MainLayoutController> {
@@ -41,7 +41,7 @@ class MainLayoutView extends GetView<MainLayoutController> {
     DrawerItem(
       title: "Profile",
       icon: Icons.person,
-      page: const ProfileView(),
+      page: const AdvancedProfileScreen(),
       binding: ProfileBinding(),
     ),
     DrawerItem(
