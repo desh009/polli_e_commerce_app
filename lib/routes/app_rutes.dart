@@ -35,6 +35,7 @@ abstract class Routes {
   static const OTP_VERIFICATION = _Paths.OTP_VERIFICATION;
   static const LOGIN = _Paths.LOGIN;
   static const SIGNUP = _Paths.SIGNUP;
+  static const REGISTER_OTP_VERIFICATION = _Paths.REGISTER_OTP_VERIFICATION;
 
   // ✅ নতুন Registration Routes এড করুন
   static const REGISTRATION = _Paths.REGISTRATION;
@@ -89,6 +90,7 @@ static const FAVOURITE = '/favourite';
   static const REGISTRATION = '/registration';
   static const EMAIL_VERIFICATION = '/email-verification';
 
+static const REGISTER_OTP_VERIFICATION = '/register-otp-verification';
   static const PROFILE_UPDATE = '/profile-update';
   static const DELIVERY_INFO = '/delivery-info';
   static const AUTHENTIC_PRODUCTS = '/authentic-products';

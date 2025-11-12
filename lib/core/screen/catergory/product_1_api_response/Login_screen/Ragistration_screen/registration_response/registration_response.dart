@@ -1,15 +1,18 @@
-// lib/core/screen/catergory/product_1_api_response/Login_screen/Registration_screen/model/registration_response.dart
 class RegistrationResponse {
   final String status;
   final String message;
   final UserData user;
   final String token;
+  final bool requiresOtp;
+  final bool emailVerificationRequired;
 
   RegistrationResponse({
     required this.status,
     required this.message,
     required this.user,
     required this.token,
+    this.requiresOtp = false,
+    this.emailVerificationRequired = true,
   });
 
   factory RegistrationResponse.fromJson(Map<String, dynamic> json) {
@@ -18,6 +21,16 @@ class RegistrationResponse {
       message: json['message'] ?? '',
       user: UserData.fromJson(json['user']),
       token: json['token'] ?? '',
+      requiresOtp:
+          json['requires_otp'] == true ||
+          json['otp_required'] == true ||
+          json['need_otp_verification'] == true ||
+          json['phone_verification_required'] == true,
+      emailVerificationRequired:
+          json['email_verification_required'] == true ||
+          json['email_verified'] == false ||
+          json['needs_email_verification'] == true ||
+          (json['user'] != null && json['user']['email_verified'] == 0), // ✅ 0 means not verified
     );
   }
 
@@ -27,6 +40,8 @@ class RegistrationResponse {
       'message': message,
       'user': user.toJson(),
       'token': token,
+      'requires_otp': requiresOtp,
+      'email_verification_required': emailVerificationRequired,
     };
   }
 
@@ -40,7 +55,7 @@ class UserData {
   final String phone;
   final String email;
   final String verificationCode;
-  final int emailVerified;
+  final int emailVerified; // ✅ int type (0/1)
   final String updatedAt;
   final String createdAt;
   final int id;
@@ -68,7 +83,7 @@ class UserData {
       phone: json['phone'] ?? '',
       email: json['email'] ?? '',
       verificationCode: json['verification_code'] ?? '',
-      emailVerified: json['email_verified'] ?? 0,
+      emailVerified: json['email_verified'] ?? 0, // ✅ int value
       updatedAt: json['updated_at'] ?? '',
       createdAt: json['created_at'] ?? '',
       id: json['id'] ?? 0,
@@ -92,5 +107,6 @@ class UserData {
     };
   }
 
+  // ✅ CORRECT: Convert int to bool for easy checking
   bool get isEmailVerified => emailVerified == 1;
 }

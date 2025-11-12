@@ -1,12 +1,15 @@
-// lib/core/screen/catergory/product_1_api_response/Login_screen/Registration_screen/repository/registration_repository.dart
+// registration_repository.dart
+import 'dart:async';
+
 import 'package:polli_e_commerce_app/core/network/api_client.dart';
+import 'package:polli_e_commerce_app/core/network/api_response.dart';
 import 'package:polli_e_commerce_app/core/network/url/url.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/registration_response/registration_response.dart';
 
 class RegistrationRepository {
   final NetworkClient networkClient;
 
-  RegistrationRepository(NetworkClient find, {required this.networkClient});
+  RegistrationRepository({required this.networkClient});
 
   Future<RegistrationResponse> registerUser({
     required String firstName,
@@ -20,8 +23,6 @@ class RegistrationRepository {
     try {
       print('🔄 Registering user...');
       print('🌐 API URL: ${Url.register}');
-      print('📧 Email: $email');
-      print('👤 Name: $firstName $lastName');
 
       final Map<String, dynamic> requestBody = {
         'first_name': firstName,
@@ -36,39 +37,92 @@ class RegistrationRepository {
 
       print('📦 Request Body: $requestBody');
 
-      final response = await networkClient.postRequest(
-        Url.register,
-        body: requestBody,
-      );
+      final response = await networkClient
+          .postRequest(Url.register, body: requestBody)
+          .timeout(Duration(seconds: 30));
 
       print('📊 Registration response status: ${response.statusCode}');
-      print('📄 Response Data: ${response.responseData}');
 
-      if (response.isSuccess) {
+      if (response.isSuccess && response.responseData != null) {
         print('✅ Registration API call successful');
-        final registrationResponse = RegistrationResponse.fromJson(response.responseData!);
-        
-        // ✅ FIXED: Log verification status
-        print('🔐 User email verified: ${registrationResponse.user.isEmailVerified}');
-        print('📝 Response message: ${registrationResponse.message}');
-        
+        final registrationResponse = RegistrationResponse.fromJson(
+          response.responseData!,
+        );
+
         return registrationResponse;
       } else {
         print('❌ Registration failed: ${response.errorMessage}');
         throw Exception(response.errorMessage ?? 'Registration failed');
       }
+   } on TimeoutException catch (e) {
+    print('❌ Registration API timeout: $e');
+    throw Exception('রেজিস্ট্রেশন রিকোয়েস্ট টাইমআউট হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+  } catch (e) {
+    print('❌ Registration repository error: $e');
+    rethrow;
+  }
+}
+  // ✅ OTP Verification Method
+  Future<NetworkResponse> verifyOtp({
+    required String phone,
+    required String otp,
+  }) async {
+    try {
+      print('🔄 Verifying OTP for: $phone');
+
+      final response = await networkClient.postRequest(
+        '${Url.baseUrl}/api/verify-otp',
+        body: {
+          'email': phone, // ✅ Using email as identifier
+          'otp': otp,
+        },
+      );
+
+      if (response.isSuccess) {
+        print('✅ OTP verification API success');
+      } else {
+        print('❌ OTP verification failed: ${response.errorMessage}');
+      }
+
+      return response;
     } catch (e) {
-      print('❌ Registration repository error: $e');
+      print('❌ OTP verification error: $e');
       rethrow;
     }
   }
 
-  // ✅ FIXED: Email approval status check - ACTUAL API CALL
+  // ✅ RESEND OTP METHOD - ADD THIS
+  Future<NetworkResponse> resendOtp({
+    required String phone, // This parameter can be email
+  }) async {
+    try {
+      print('🔄 Resending OTP to: $phone');
+
+      final response = await networkClient.postRequest(
+        '${Url.baseUrl}/api/resend-otp', // ✅ Your resend OTP endpoint
+        body: {
+          'email': phone, // ✅ Using email as identifier
+        },
+      );
+
+      if (response.isSuccess) {
+        print('✅ Resend OTP API success');
+      } else {
+        print('❌ Resend OTP failed: ${response.errorMessage}');
+      }
+
+      return response;
+    } catch (e) {
+      print('❌ Resend OTP error: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ Email approval status check
   Future<bool> checkEmailApprovalStatus({required String email}) async {
     try {
       print('🔍 Checking email approval status for: $email');
-      
-      // TODO: Replace with your actual API endpoint
+
       final response = await networkClient.getRequest(
         '${Url.baseUrl}/api/check-approval-status?email=$email',
       );
@@ -76,14 +130,14 @@ class RegistrationRepository {
       if (response.isSuccess) {
         final data = response.responseData;
         print('📧 Approval check response: $data');
-        
-        // ✅ FIXED: Adjust according to your actual API response structure
-        bool isApproved = data?['approved'] == true || 
-                         data?['email_verified'] == true ||
-                         data?['status'] == 'approved' ||
-                         data?['is_verified'] == true ||
-                         data?['verified'] == true;
-        
+
+        bool isApproved =
+            data?['approved'] == true ||
+            data?['email_verified'] == true ||
+            data?['status'] == 'approved' ||
+            data?['is_verified'] == true ||
+            data?['verified'] == true;
+
         print('✅ Email approval status: $isApproved');
         return isApproved;
       } else {

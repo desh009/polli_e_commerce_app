@@ -95,7 +95,7 @@ class ProfileXController extends GetxController {
   }
 
   // ✅ NEW METHOD: updateProfileWithAllFields যোগ করুন
-  Future<void> updateProfileWithAllFields({
+  Future<void> updateProfile({
     required String name,
     required String email,
     required String phone,

@@ -1,7 +1,7 @@
 // lib/core/network/urls.dart
 class Url {
   // ✅ Development & Production URLs
-  static const String developmentBaseUrl = "http://192.168.0.166:8000";
+  static const String developmentBaseUrl = "http://192.168.0.165:8000";
   static const String productionBaseUrl = "https://inventory.growtech.com.bd";
   
   // ✅ Current base URL (easily switch between dev and prod)
@@ -20,7 +20,9 @@ class Url {
   static const String userProfile = "$baseUrl/api/user-profile";
   static const String updateProfile = "$baseUrl/api/update-profile";
   static const String changePassword = "$baseUrl/api/change-password";
-  static const String forgotPassword = "$baseUrl/api/forgot-password"; // ✅ ADD THIS
+  static const String forgotPassword = "$baseUrl/api/forgot-password";
+   // ✅ ADD THIS  static const String verifyOtp = "$baseUrl/api/register/verify";
+  static const String verifyOtp = "$baseUrl/api/register/verify";
 
   // 🟢 Category related
   static const String categoryList = "$baseUrl/api/category";

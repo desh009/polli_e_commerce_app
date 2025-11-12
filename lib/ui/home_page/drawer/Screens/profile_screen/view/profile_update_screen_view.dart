@@ -215,13 +215,13 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
     }
 
     try {
-      await profileController.updateProfileWithAllFields(
+      await profileController.updateProfile(
         name: fullName,
         email: email,
         phone: phone,
         address: address,
-        dateOfBirth: dateOfBirth,
-        image: _selectedImage,
+        // dateOfBirth: dateOfBirth,
+        // image: _selectedImage,
       );
       
       Get.snackbar(

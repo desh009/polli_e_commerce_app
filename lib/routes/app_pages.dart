@@ -8,6 +8,7 @@ import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/bind
 import 'package:polli_e_commerce_app/core/screen/catergory/check_out_screen/view/chek_out_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Forgot_password_Screen/binder/forgot_password_binder.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Forgot_password_Screen/view/forgot_password_view.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/Registration_otp/view/ragistration_otp_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/binder/registration_binder.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/view/registrtion_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/view/Login_screen.dart';
@@ -126,6 +127,18 @@ class AppPages {
       page: () => const AdvancedProfileScreen(),
       binding: ProfileBinding(),
     ),
+GetPage(
+  name: _Paths.REGISTER_OTP_VERIFICATION,
+  page: () {
+    // Get arguments from navigation
+    final Map<String, dynamic> arguments = Get.arguments ?? {};
+    return OtpScreen(
+      email: arguments['email'] ?? '', // ✅ Dynamic email from arguments
+    );
+  },
+  binding: LogoutBinding(),
+),
+
     GetPage(
       name: _Paths.SETTINGS,
       page: () => const SettingsView(),
@@ -142,7 +155,8 @@ class AppPages {
       page: () => ProductDetailsScreen(
         productId: Get.arguments['productId'],
         product: Get.arguments['product'],
-        productName: Get.arguments['productName'], productData: {},
+        productName: Get.arguments['productName'],
+        productData: {},
       ),
       binding: BindingsBuilder(() {
         // Product details binder

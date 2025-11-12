@@ -1,6 +1,6 @@
-// lib/core/screen/auth/signup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/Registration_otp/view/ragistration_otp_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/controller/registration_controller.dart';
 import 'package:polli_e_commerce_app/sub_modules/app_colors/app_colors.dart';
 
@@ -29,9 +29,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
 
-  // Auto approval check variables
-  var _isCheckingApproval = false.obs;
-  var _approvalCheckCount = 0.obs;
+  // ✅ FIXED: Auto approval check variables - .obs REMOVED
+  bool _isCheckingApproval = false;
+  int _approvalCheckCount = 0;
   final int _maxApprovalChecks = 30;
 
   @override
@@ -55,6 +55,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  // SignUpScreen - _signUp method
   void _signUp() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreeToTerms) {
@@ -88,32 +89,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _registrationController.confirmPasswordController.text =
           _confirmPasswordController.text.trim();
 
-      // Call registration API
-      await _registrationController.registerUser();
+      // ✅ FIXED: Direct navigation - don't wait for callbacks
+      print('🎯 Directly navigating to OTP screen');
 
-      // ✅ FIXED: Check if we need to start approval check (only if email NOT verified)
-      if (_registrationController.isWaitingForApproval.value) {
-        print('🎯 Starting auto approval check - email verification pending');
-        _startAutoApprovalCheck();
-      } else if (_registrationController.registrationData.value != null) {
-        // ✅ If email is already verified, go directly to login
-        print('✅ Email already verified - registration complete');
-        _handleRegistrationSuccess();
-      }
+      Get.offAll(
+        () => OtpScreen(email: _emailController.text.trim()),
+        transition: Transition.rightToLeft,
+        duration: const Duration(milliseconds: 300),
+      );
+
+      // ✅ Call registration API in background
+      _registrationController.registerUser();
     } catch (e) {
       print('❌ Registration error: $e');
       Get.snackbar(
         "রেজিস্ট্রেশন ব্যর্থ",
-        "দয়া করে আবার চেষ্টা করুন বা ইন্টারনেট কানেকশন চেক করুন",
+        "দয়া করে আবার চেষ্টা করুন",
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
     }
   }
 
+  // ✅ NEW: Navigate to OTP Screen Method
+  void _navigateToOtpScreen() {
+    Get.to(
+      () =>
+          OtpScreen(email: _registrationController.emailController.text.trim()),
+    );
+  }
+
   void _startAutoApprovalCheck() {
-    _isCheckingApproval.value = true;
-    _approvalCheckCount.value = 0;
+    setState(() {
+      _isCheckingApproval = true;
+      _approvalCheckCount = 0;
+    });
 
     print('🔄 Starting auto approval check for: ${_emailController.text}');
 
@@ -121,15 +131,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 10));
 
-      if (_approvalCheckCount.value >= _maxApprovalChecks) {
+      if (_approvalCheckCount >= _maxApprovalChecks) {
         _handleApprovalTimeout();
         return false;
       }
 
-      _approvalCheckCount.value++;
+      setState(() {
+        _approvalCheckCount++;
+      });
 
       print(
-        '🔍 Checking approval status... (${_approvalCheckCount.value}/$_maxApprovalChecks)',
+        '🔍 Checking approval status... ($_approvalCheckCount/$_maxApprovalChecks)',
       );
 
       try {
@@ -164,7 +176,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleApprovalSuccess() {
-    _isCheckingApproval.value = false;
+    setState(() {
+      _isCheckingApproval = false;
+    });
     _registrationController.stopAutoApprovalCheck();
 
     print('🎉 Email approved! Registration confirmed.');
@@ -182,7 +196,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleApprovalTimeout() {
-    _isCheckingApproval.value = false;
+    setState(() {
+      _isCheckingApproval = false;
+    });
     _registrationController.stopAutoApprovalCheck();
 
     Get.snackbar(
@@ -199,21 +215,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _showTimeoutDialog() {
     Get.dialog(
       AlertDialog(
-        title: Text("ইমেইল ভেরিফিকেশন"),
-        content: Text(
+        title: const Text("ইমেইল ভেরিফিকেশন"),
+        content: const Text(
           "আপনার ইমেইল ভেরিফিকেশন এখনও সম্পন্ন হয়নি। আপনি কি লগইন পেজে যেতে চান?",
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text("আরও অপেক্ষা করুন"),
+            child: const Text("আরও অপেক্ষা করুন"),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               Get.offAllNamed('/login');
             },
-            child: Text("লগইন পেজে যান"),
+            child: const Text("লগইন পেজে যান"),
           ),
         ],
       ),
@@ -221,42 +237,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _stopApprovalCheck() {
-    _isCheckingApproval.value = false;
-    _approvalCheckCount.value = 0;
+    setState(() {
+      _isCheckingApproval = false;
+      _approvalCheckCount = 0;
+    });
   }
-
-  void _demoSignUp() {
-    _firstNameController.text = "জন";
-    _lastNameController.text = "ডো";
-    _usernameController.text = "johndoe";
-    _emailController.text = "user@example.com";
-    _phoneController.text = "01712345678";
-    _passwordController.text = "password";
-    _confirmPasswordController.text = "password";
-    _agreeToTerms = true;
-
-    Get.snackbar(
-      "ডেমো ডেটা লোড হয়েছে",
-      "এখন রেজিস্ট্রেশন বাটন ক্লিক করুন",
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
-  }
-
-  // void _navigateToLogin() {
-  //   _stopApprovalCheck();
-  //   _registrationController.stopAutoApprovalCheck();
-  //   Get.back();
-  // }
-
-  // void _openEmailApp() {
-  //   Get.snackbar(
-  //     "ইমেইল চেক করুন",
-  //     "আপনার ইমেইল অ্যাপ খুলুন এবং ভেরিফিকেশন লিংকটি ক্লিক করুন",
-  //     backgroundColor: Colors.blue,
-  //     colorText: Colors.white,
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +255,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ FIXED: Manual Approve Button Removed - শুধু Back Button রাখা হয়েছে
+                // Back Button
                 IconButton(
                   onPressed: () {
                     if (Navigator.canPop(Get.context!)) {
@@ -291,19 +276,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 20),
                 _buildVerificationNotice(),
                 const SizedBox(height: 16),
-                Obx(
-                  () =>
-                      _isCheckingApproval.value ||
-                          _registrationController.isWaitingForApproval.value
-                      ? _buildApprovalStatus()
-                      : const SizedBox(),
-                ),
+
+                // ✅ FIXED: Approval Status
+                (_isCheckingApproval ||
+                        _registrationController.isWaitingForApproval.value)
+                    ? _buildApprovalStatus()
+                    : const SizedBox(),
+
                 _buildTermsCheckbox(),
                 const SizedBox(height: 30),
-                Obx(() => _buildSignUpButton()),
+
+                // ✅ FIXED: Sign Up Button
+                _buildSignUpButton(),
+
                 const SizedBox(height: 20),
-                // _buildDemoButton(),
-                const SizedBox(height: 30),
                 _buildFooter(),
               ],
             ),
@@ -576,7 +562,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               Expanded(
                 child: LinearProgressIndicator(
-                  value: _approvalCheckCount.value / _maxApprovalChecks,
+                  value:
+                      _approvalCheckCount /
+                      _maxApprovalChecks, // ✅ .value REMOVED
                   backgroundColor: Colors.orange.shade200,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     Colors.orange.shade600,
@@ -584,11 +572,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Obx(
-                () => Text(
-                  "${_approvalCheckCount.value}/$_maxApprovalChecks",
-                  style: TextStyle(fontSize: 12, color: Colors.orange.shade700),
-                ),
+              Text(
+                "$_approvalCheckCount/$_maxApprovalChecks", // ✅ .value REMOVED
+                style: TextStyle(fontSize: 12, color: Colors.orange.shade700),
               ),
             ],
           ),
@@ -598,34 +584,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             style: TextStyle(fontSize: 12, color: Colors.orange.shade700),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          // Row(
-          //   children: [
-          //     Expanded(
-          //       child: OutlinedButton.icon(
-          //         onPressed: _openEmailApp,
-          //         icon: Icon(Icons.open_in_new, size: 16),
-          //         label: Text("ইমেইল অ্যাপ খুলুন"),
-          //         style: OutlinedButton.styleFrom(
-          //           foregroundColor: Colors.orange.shade700,
-          //           side: BorderSide(color: Colors.orange.shade400),
-          //         ),
-          //       ),
-          //     ),
-          //     const SizedBox(width: 8),
-          //     Expanded(
-          //       child: OutlinedButton.icon(
-          //         onPressed: _navigateToLogin,
-          //         icon: Icon(Icons.login, size: 16),
-          //         label: Text("লগইন পেজে যান"),
-          //         style: OutlinedButton.styleFrom(
-          //           foregroundColor: Colors.blue.shade700,
-          //           side: BorderSide(color: Colors.blue.shade400),
-          //         ),
-          //       ),
-          //     ),
-          //   ],
-          // ),
         ],
       ),
     );
@@ -682,105 +640,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
   );
 
   Widget _buildSignUpButton() {
-    if (_isCheckingApproval.value ||
-        _registrationController.isWaitingForApproval.value) {
+    return Obx(() {
+      // ✅ FIRST: সব observable variables Obx এর ভিতরে নিন
+      final isLoading = _registrationController.isLoading.value;
+
       return SizedBox(
         width: double.infinity,
         height: 56,
         child: ElevatedButton(
-          onPressed: null,
+          onPressed: isLoading ? null : _signUp, // ✅ Use local variable
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
+            disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          child:
+              isLoading // ✅ Use local variable
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "রেজিস্ট্রেশন হচ্ছে...",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  "অ্যাকাউন্ট তৈরি করুন",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                "ভেরিফিকেশনের জন্য অপেক্ষা...",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
         ),
       );
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _registrationController.isLoading.value ? null : _signUp,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-        ),
-        child: _registrationController.isLoading.value
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                "অ্যাকাউন্ট তৈরি করুন",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-      ),
-    );
+    });
   }
-
-  // Widget _buildDemoButton() => SizedBox(
-  //   width: double.infinity,
-  //   height: 50,
-  //   child: OutlinedButton(
-  //     onPressed: _demoSignUp,
-  //     style: OutlinedButton.styleFrom(
-  //       foregroundColor: AppColors.primary,
-  //       side: BorderSide(color: AppColors.primary),
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     ),
-  //     child: Text(
-  //       "ডেমো তথ্য ব্যবহার করুন (টেস্ট)",
-  //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-  //     ),
-  //   ),
-  // );
 
   Widget _buildFooter() => Column(
     children: [
       Row(
         children: [
-          Expanded(child: Divider()),
+          const Expanded(child: Divider()),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               "অথবা",
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
-          Expanded(child: Divider()),
+          const Expanded(child: Divider()),
         ],
       ),
-      SizedBox(height: 20),
+      const SizedBox(height: 20),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -788,26 +712,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
             icon: Icons.g_mobiledata,
             onPressed: () => Get.snackbar("গুগল সাইন আপ", "শীঘ্রই আসছে"),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           _buildSocialButton(
             icon: Icons.facebook,
             onPressed: () => Get.snackbar("ফেসবুক সাইন আপ", "শীঘ্রই আসছে"),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           _buildSocialButton(
             icon: Icons.phone,
             onPressed: () => Get.snackbar("ফোন সাইন আপ", "শীঘ্রই আসছে"),
           ),
         ],
       ),
-      SizedBox(height: 30),
-      // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      //   Text("ইতিমধ্যে অ্যাকাউন্ট আছে? "),
-      //   GestureDetector(
-      //     onTap: _navigateToLogin,
-      //     child: Text("লগইন করুন", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-      //   ),
-      // ]),
+      const SizedBox(height: 30),
     ],
   );
 
