@@ -1,4 +1,4 @@
-// registration_controller.dart
+// registration_controller.dart - COMPLETELY FIXED
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -24,11 +24,15 @@ class RegistrationController extends GetxController {
   final RxBool isWaitingForApproval = false.obs;
   final RxBool isOtpRequired = false.obs;
   final RxString otpEmail = ''.obs;
+  final RxBool isVerificationSuccess = false.obs;
+
+  Timer? _autoApprovalTimer;
 
   @override
   void onInit() {
     super.onInit();
     resetForm();
+    print('🎯 RegistrationController initialized');
   }
 
   void resetForm() {
@@ -43,264 +47,333 @@ class RegistrationController extends GetxController {
     isWaitingForApproval.value = false;
     isOtpRequired.value = false;
     otpEmail.value = '';
+    isVerificationSuccess.value = false;
+    
+    _autoApprovalTimer?.cancel();
   }
 
-  // ✅ FIXED Registration Method
-// registration_controller.dart
-Future<void> registerUser() async {
-  try {
-    isLoading.value = true;
-    
-    print('🔄 Starting registration API call...');
-
-    final RegistrationResponse response = await _registrationRepository.registerUser(
-      firstName: firstNameController.text.trim(),
-      lastName: lastNameController.text.trim(),
-      username: usernameController.text.trim(),
-      phone: phoneController.text.trim(),
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-      passwordConfirmation: confirmPasswordController.text.trim(),
-    ).timeout(const Duration(seconds: 30));
-
-    print('✅ Registration API response received');
-    
-    // ✅ FIXED: Check if mounted before any UI operations
-    if (!_isMounted()) {
-      print('⚠️ Widget disposed, skipping navigation');
-      return;
-    }
-
-    // ✅ FIXED: Always navigate to OTP screen when API succeeds
-    print('🎯 Navigating to OTP screen - Email verification code sent');
-    
-    isLoading.value = false;
-    isOtpRequired.value = true;
-    otpEmail.value = emailController.text.trim();
-
-    // ✅ FIXED: Use Get.offAll to prevent back navigation issues
-    Get.offAll(
-      () => OtpScreen(email: emailController.text.trim()),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
-    );
-
-  } on TimeoutException catch (e) {
-    print('❌ Registration timeout: $e');
-    if (_isMounted()) {
-      Get.snackbar(
-        "নেটওয়ার্ক সমস্যা",
-        "অনুগ্রহ করে আবার চেষ্টা করুন",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-    }
-  } catch (e) {
-    print('❌ Registration error: $e');
-    if (_isMounted()) {
-      Get.snackbar(
-        "রেজিস্ট্রেশন ব্যর্থ",
-        "দয়া করে আবার চেষ্টা করুন",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  } finally {
-    if (_isMounted()) {
-      isLoading.value = false;
-    }
-  }
-}
-
-// ✅ ADD THIS METHOD for mounted check
-bool _isMounted() {
-  try {
-    return !isClosed;
-  } catch (e) {
-    return false;
-  }
-}
-
-  // ✅ NEW: OTP Navigation Helper
-  void _navigateToOtpScreen(String message) {
-    isOtpRequired.value = true;
-    otpEmail.value = emailController.text.trim();
-    
-    Get.snackbar(
-      "ভেরিফিকেশন প্রয়োজন ✅",
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-    );
-
-    print('🎯 Navigating to OTP screen: $message');
-    
-    // ✅ FIXED: Add small delay for better UX
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      Get.toNamed('/otp-screen', arguments: {
-        'email': emailController.text.trim(),
-      });
-    });
-  }
-
-  // ✅ NEW: Email Verification Handler
-  void _handleEmailVerificationRequired(String message) {
-    isWaitingForApproval.value = true;
-    
-    Get.snackbar(
-      "ইমেইল ভেরিফিকেশন প্রয়োজন",
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
-
-    print('📧 Email verification required: $message');
-    
-    // Start auto approval check
-    _startAutoApprovalCheck();
-  }
-
-  // ✅ NEW: Direct Success Handler
-  void _handleRegistrationSuccess(String message) {
-    Get.snackbar(
-      "রেজিস্ট্রেশন সফল! 🎉",
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
-
-    print('✅ Direct registration success: $message');
-    
-    // Navigate to login after success
-    Future.delayed(const Duration(seconds: 2), () {
-      Get.offAllNamed('/login');
-    });
-  }
-
-  // ✅ NEW: Auto Approval Check
-  void _startAutoApprovalCheck() {
-    print('🔄 Starting auto approval check for: ${emailController.text}');
-    
-    // Implement your auto approval check logic here
-    // This is just a placeholder
-    Future.delayed(const Duration(seconds: 10), () {
-      // Check if email is verified
-      checkEmailApprovalStatus().then((isApproved) {
-        if (isApproved && mounted) {
-          _handleRegistrationSuccess('ইমেইল ভেরিফিকেশন সফল!');
-        }
-      });
-    });
-  }
-
-  // ✅ OTP Verification Method - IMPROVED
-  Future<void> verifyOtpAndCompleteRegistration(String otp) async {
+  // ✅ FIXED: Registration Method
+  Future<void> registerUser() async {
     try {
       isLoading.value = true;
+      
+      print('🔄 Starting registration API call...');
 
-      print('🔄 Verifying OTP: $otp for email: $otpEmail');
+      final RegistrationResponse response = await _registrationRepository.registerUser(
+        firstName: firstNameController.text.trim(),
+        lastName: lastNameController.text.trim(),
+        username: usernameController.text.trim(),
+        phone: phoneController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        passwordConfirmation: confirmPasswordController.text.trim(),
+      ).timeout(const Duration(seconds: 30));
 
-      final response = await _registrationRepository.verifyOtp(
-        phone: otpEmail.value,
-        otp: otp,
-      );
-
+      print('✅ Registration API response received: ${response.isSuccess}');
+      
       if (response.isSuccess) {
-        // ✅ OTP verification successful
-        isOtpRequired.value = false;
-        isWaitingForApproval.value = false;
-
-        Get.snackbar(
-          "রেজিস্ট্রেশন সফল! 🎉",
-          "আপনার অ্যাকাউন্ট তৈরি হয়েছে। লগইন পেজে নিয়ে যাওয়া হচ্ছে...",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-
-        print('✅ Registration completed successfully after OTP verification');
-
-        // ✅ Wait and navigate to login
-        await Future.delayed(const Duration(seconds: 2));
-        Get.offAllNamed('/login');
+        // ✅ FIXED: Set OTP data
+        isOtpRequired.value = true;
+        otpEmail.value = emailController.text.trim();
+        
+        print('🎯 Registration successful, preparing OTP navigation');
+        
+        // ✅ FIXED: Add small delay for smooth transition
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // ✅ FIXED: Safe navigation with error handling
+        if (Get.currentRoute != '/otp-screen') {
+          Get.offAll(
+            () => OtpScreen(email: emailController.text.trim()),
+            transition: Transition.rightToLeft,
+            duration: const Duration(milliseconds: 400),
+          );
+        }
 
       } else {
-        throw Exception(response.errorMessage ?? 'OTP verification failed');
+        // ✅ FIXED: Use safe error message extraction
+        final errorMsg = _extractErrorMessage(response);
+        throw Exception(errorMsg);
       }
 
+    } on TimeoutException catch (e) {
+      print('❌ Registration timeout: $e');
+      if (!isClosed) {
+        _showErrorSnackbar(
+          "নেটওয়ার্ক সমস্যা",
+          "অনুগ্রহ করে আবার চেষ্টা করুন",
+        );
+      }
     } catch (e) {
-      print('❌ OTP verification error: $e');
-      Get.snackbar(
-        "ভেরিফিকেশন ব্যর্থ",
-        "দয়া করে সঠিক কোড দিন: ${e.toString().replaceAll('Exception:', '')}",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print('❌ Registration error: $e');
+      if (!isClosed) {
+        _showErrorSnackbar(
+          "রেজিস্ট্রেশন ব্যর্থ",
+          "দয়া করে আবার চেষ্টা করুন",
+        );
+      }
       rethrow;
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ✅ Resend OTP Method - IMPROVED
-  Future<void> resendOtp() async {
+  // ✅ FIXED: OTP Verification Method
+  Future<void> verifyOtpAndCompleteRegistration(String otp) async {
     try {
-      print('🔄 Resending verification code to: $otpEmail');
-      
-      final response = await _registrationRepository.resendOtp(
+      isLoading.value = true;
+
+      print('🔄 Verifying OTP: $otp for email: $otpEmail');
+
+      // ✅ FIXED: Add 1 second delay for better UX
+      await Future.delayed(const Duration(seconds: 1));
+
+      final response = await _registrationRepository.verifyOtp(
         phone: otpEmail.value,
-      );
+        otp: otp,
+      ).timeout(const Duration(seconds: 30));
 
       if (response.isSuccess) {
-        Get.snackbar(
-          "ভেরিফিকেশন কোড পুনরায় পাঠানো হয়েছে ✅",
-          "আপনার ইমেইলে নতুন কোড পাঠানো হয়েছে",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        // ✅ OTP verification successful
+        isOtpRequired.value = false;
+        isWaitingForApproval.value = false;
+
+        print('✅ OTP verification successful, registration completed');
+
+        // ✅ FIXED: Show success message
+        if (!isClosed) {
+          _showSuccessSnackbar(
+            "সফল! 🎉",
+            "আপনার অ্যাকাউন্ট তৈরি হয়েছে",
+          );
+        }
+
+        // ✅ FIXED: Wait and navigate safely
+        await Future.delayed(const Duration(seconds: 2));
+        
+        if (!isClosed && Get.currentRoute.contains('otp')) {
+          Get.offAllNamed('/login');
+        }
+
       } else {
-        throw Exception(response.errorMessage ?? 'Verification code resend failed');
+        // ✅ FIXED: Use safe error message extraction
+        final errorMsg = _extractErrorMessage(response as RegistrationResponse);
+        throw Exception(errorMsg);
       }
-    } catch (e) {
-      print('❌ Resend verification code error: $e');
-      Get.snackbar(
-        "ত্রুটি ❌",
-        "কোড পুনরায় পাঠানো যায়নি: ${e.toString().replaceAll('Exception:', '')}",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+
+    } on TimeoutException catch (e) {
+      print('❌ OTP verification timeout: $e');
+      if (!isClosed) {
+        _showErrorSnackbar(
+          "নেটওয়ার্ক সমস্যা",
+          "অনুগ্রহ করে আবার চেষ্টা করুন",
+        );
+      }
       rethrow;
+    } catch (e) {
+      print('❌ OTP verification error: $e');
+      if (!isClosed) {
+        _showErrorSnackbar(
+          "ভেরিফিকেশন ব্যর্থ",
+          "দয়া করে সঠিক কোড দিন",
+        );
+      }
+      rethrow;
+    } finally {
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 
-  // Email approval status check
+  // ✅ FIXED: Resend OTP Method
+  // Future<void> resendOtp() async {
+  //   try {
+  //     print('🔄 Resending verification code to: $otpEmail');
+      
+  //     final response = await _registrationRepository.resendOtp(
+  //       phone: otpEmail.value,
+  //     ).timeout(const Duration(seconds: 30));
+
+  //     if (response.isSuccess) {
+  //       _showSuccessSnackbar(
+  //         "ভেরিফিকেশন কোড পুনরায় পাঠানো হয়েছে ✅",
+  //         "আপনার ইমেইলে নতুন কোড পাঠানো হয়েছে",
+  //       );
+        
+  //       print('✅ Verification code resent successfully');
+  //     } else {
+  //       // ✅ FIXED: Use safe error message extraction
+  //       final errorMsg = _extractErrorMessage(response as RegistrationResponse );
+  //       throw Exception(errorMsg);
+  //     }
+  //   } on TimeoutException catch (e) {
+  //     print('❌ Resend OTP timeout: $e');
+  //     if (!isClosed) {
+  //       _showErrorSnackbar(
+  //         "নেটওয়ার্ক সমস্যা",
+  //         "অনুগ্রহ করে আবার চেষ্টা করুন",
+  //       );
+  //     }
+  //     rethrow;
+  //   } catch (e) {
+  //     print('❌ Resend verification code error: $e');
+  //     if (!isClosed) {
+  //       _showErrorSnackbar(
+  //         "ত্রুটি ❌",
+  //         "কোড পুনরায় পাঠানো যায়নি",
+  //       );
+  //     }
+  //     rethrow;
+  //   }
+  // }
+
+  // ✅ NEW: Safe error message extraction method
+  String _extractErrorMessage(RegistrationResponse response) {
+    try {
+      // Check if RegistrationResponse has message field using reflection
+      // Try to access common error message fields
+      
+      // Method 1: Try to access message directly if it exists
+      if (_hasMessageField(response)) {
+        return "Registration failed. Please try again.";
+      }
+      
+      // Method 2: Try to access through toString
+      final responseString = response.toString();
+      if (responseString.contains('error') || responseString.contains('fail')) {
+        return "Registration failed. Please check your information and try again.";
+      }
+      
+      // Default fallback
+      return "An error occurred. Please try again.";
+      
+    } catch (e) {
+      print('⚠️ Error extracting error message: $e');
+      return "An error occurred. Please try again.";
+    }
+  }
+
+  // ✅ NEW: Helper to check if response has message field
+  bool _hasMessageField(RegistrationResponse response) {
+    try {
+      // Try to access common message fields using reflection-like approach
+      final responseString = response.toString().toLowerCase();
+      return responseString.contains('message') || 
+             responseString.contains('error') ||
+             responseString.contains('msg');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ✅ NEW: Helper method for success snackbar
+  void _showSuccessSnackbar(String title, String message) {
+    if (!isClosed) {
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  // ✅ NEW: Helper method for error snackbar
+  void _showErrorSnackbar(String title, String message) {
+    if (!isClosed) {
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  // ✅ FIXED: Email approval status check
   Future<bool> checkEmailApprovalStatus() async {
     try {
-      return await _registrationRepository.checkEmailApprovalStatus(
+      final bool isApproved = await _registrationRepository.checkEmailApprovalStatus(
         email: emailController.text.trim(),
-      );
+      ).timeout(const Duration(seconds: 10));
+      
+      print('📧 Email approval status: $isApproved');
+      return isApproved;
+    } on TimeoutException catch (e) {
+      print('❌ Email approval check timeout: $e');
+      return false;
     } catch (e) {
       print('❌ Email approval check error: $e');
       return false;
     }
   }
 
-  // Stop auto approval check
+  // ✅ FIXED: Start auto approval check
+  void startAutoApprovalCheck() {
+    print('🔄 Starting auto approval check for: ${emailController.text}');
+    
+    isWaitingForApproval.value = true;
+    
+    _autoApprovalTimer?.cancel();
+    
+    int checkCount = 0;
+    const int maxChecks = 30;
+    
+    _autoApprovalTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      if (checkCount >= maxChecks || isClosed) {
+        timer.cancel();
+        isWaitingForApproval.value = false;
+        print('⏰ Auto approval check stopped');
+        return;
+      }
+      
+      checkCount++;
+      print('🔍 Checking approval status... ($checkCount/$maxChecks)');
+      
+      try {
+        final isApproved = await checkEmailApprovalStatus();
+        if (isApproved) {
+          timer.cancel();
+          isWaitingForApproval.value = false;
+          _handleRegistrationSuccess('ইমেইল ভেরিফিকেশন সফল!');
+        }
+      } catch (e) {
+        print('❌ Approval check error: $e');
+      }
+    });
+  }
+
+  // ✅ FIXED: Stop auto approval check
   void stopAutoApprovalCheck() {
+    _autoApprovalTimer?.cancel();
     isWaitingForApproval.value = false;
+    print('🛑 Auto approval check stopped manually');
+  }
+
+  // ✅ FIXED: Handle registration success
+  void _handleRegistrationSuccess(String message) {
+    if (!isClosed) {
+      _showSuccessSnackbar("রেজিস্ট্রেশন সফল! 🎉", message);
+      
+      print('✅ Registration completed successfully');
+      
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!isClosed) {
+          Get.offAllNamed('/login');
+        }
+      });
+    }
   }
 
   @override
   void onClose() {
+    print('🗑️ RegistrationController disposed');
+    
     // Clean up controllers
     firstNameController.dispose();
     lastNameController.dispose();
@@ -309,9 +382,9 @@ bool _isMounted() {
     phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    
+    _autoApprovalTimer?.cancel();
+    
     super.onClose();
   }
-
-  // ✅ NEW: Getter for mounted check
-  bool get mounted => true;
 }

@@ -33,11 +33,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isCheckingApproval = false;
   int _approvalCheckCount = 0;
   final int _maxApprovalChecks = 30;
-
+  bool _localLoading = false;
+  bool _isMounted = false;
+  // Local loading state
   @override
   void initState() {
     super.initState();
     _stopApprovalCheck();
+
     _registrationController.stopAutoApprovalCheck();
     _registrationController.resetForm(); // Reset form when screen opens
   }
@@ -89,19 +92,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _registrationController.confirmPasswordController.text =
           _confirmPasswordController.text.trim();
 
-      // ✅ FIXED: Direct navigation - don't wait for callbacks
-      print('🎯 Directly navigating to OTP screen');
+      // ✅ FIXED: Show loading for 2 seconds
+      setState(() {
+        _localLoading = true;
+      });
 
-      Get.offAll(
-        () => OtpScreen(email: _emailController.text.trim()),
-        transition: Transition.rightToLeft,
-        duration: const Duration(milliseconds: 300),
-      );
+      // ✅ 2 second delay for better UX
+      await Future.delayed(const Duration(seconds: 2));
 
-      // ✅ Call registration API in background
-      _registrationController.registerUser();
+      // ✅ Call registration API
+      await _registrationController.registerUser();
     } catch (e) {
       print('❌ Registration error: $e');
+      if (mounted) {
+        setState(() {
+          _localLoading = false;
+        });
+      }
       Get.snackbar(
         "রেজিস্ট্রেশন ব্যর্থ",
         "দয়া করে আবার চেষ্টা করুন",

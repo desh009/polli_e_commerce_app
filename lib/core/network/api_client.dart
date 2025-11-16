@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ui';
-
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
 import 'package:polli_e_commerce_app/core/network/api_response.dart';
@@ -19,29 +18,11 @@ class NetworkClient {
       _logRequest(url, headers: commonHeaders());
       final Response response = await get(uri, headers: commonHeaders());
       _logResponse(response);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: true,
-          statusCode: response.statusCode,
-          responseData: responseBody,
-        );
-      } else if (response.statusCode == 401) {
-        onUnAuthorize();
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: 'Un-Authorize',
-        );
-      } else {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: responseBody['msg'] ?? _defaultMessage,
-        );
-      }
+      
+      return _handleResponse(response);
+      
     } on Exception catch (e) {
+      _logger.e('GET Request Exception: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -63,29 +44,11 @@ class NetworkClient {
         body: jsonEncode(body),
       );
       _logResponse(response);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: true,
-          statusCode: response.statusCode,
-          responseData: responseBody,
-        );
-      } else if (response.statusCode == 401) {
-        onUnAuthorize();
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: 'Un-Authorize',
-        );
-      } else {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: responseBody['msg'] ?? _defaultMessage,
-        );
-      }
+      
+      return _handleResponse(response);
+      
     } on Exception catch (e) {
+      _logger.e('POST Request Exception: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -107,29 +70,11 @@ class NetworkClient {
         body: jsonEncode(body),
       );
       _logResponse(response);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: true,
-          statusCode: response.statusCode,
-          responseData: responseBody,
-        );
-      } else if (response.statusCode == 401) {
-        onUnAuthorize();
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: 'Un-Authorize',
-        );
-      } else {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: responseBody['msg'] ?? _defaultMessage,
-        );
-      }
+      
+      return _handleResponse(response);
+      
     } on Exception catch (e) {
+      _logger.e('PUT Request Exception: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -151,29 +96,11 @@ class NetworkClient {
         body: jsonEncode(body),
       );
       _logResponse(response);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: true,
-          statusCode: response.statusCode,
-          responseData: responseBody,
-        );
-      } else if (response.statusCode == 401) {
-        onUnAuthorize();
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: 'Un-Authorize',
-        );
-      } else {
-        final responseBody = jsonDecode(response.body);
-        return NetworkResponse(
-          isSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: responseBody['msg'] ?? _defaultMessage,
-        );
-      }
+      
+      return _handleResponse(response);
+      
     } on Exception catch (e) {
+      _logger.e('PATCH Request Exception: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -182,8 +109,7 @@ class NetworkClient {
     }
   }
 
-  Future<NetworkResponse> deleteRequest(
-    String url) async {
+  Future<NetworkResponse> deleteRequest(String url) async {
     try {
       Uri uri = Uri.parse(url);
       _logRequest(url, headers: commonHeaders());
@@ -192,34 +118,105 @@ class NetworkClient {
         headers: commonHeaders(),
       );
       _logResponse(response);
+      
+      return _handleResponse(response);
+      
+    } on Exception catch (e) {
+      _logger.e('DELETE Request Exception: $e');
+      return NetworkResponse(
+        isSuccess: false,
+        statusCode: -1,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  // ✅ FIXED: Common response handler method
+  NetworkResponse _handleResponse(Response response) {
+    try {
+      print('📊 Handling response with status: ${response.statusCode}');
+      print('📊 Response body type: ${response.body.runtimeType}');
+      print('📊 Response body length: ${response.body.length}');
+
+      // ✅ FIXED: Handle response data properly
+      dynamic responseData;
+      
+      if (response.body.isEmpty) {
+        responseData = null;
+        print('⚠️ Response body is empty');
+      } else {
+        // Try to decode JSON
+        try {
+          responseData = jsonDecode(response.body);
+          print('✅ Successfully decoded JSON response');
+          print('📊 Decoded response type: ${responseData.runtimeType}');
+        } catch (e) {
+          print('⚠️ JSON decode failed, using raw response body as String');
+          responseData = response.body;
+        }
+      }
+
+      // Handle different status codes
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseBody = jsonDecode(response.body);
         return NetworkResponse(
           isSuccess: true,
           statusCode: response.statusCode,
-          responseData: responseBody,
+          responseData: responseData,
         );
       } else if (response.statusCode == 401) {
         onUnAuthorize();
         return NetworkResponse(
           isSuccess: false,
           statusCode: response.statusCode,
-          errorMessage: 'Un-Authorize',
+          errorMessage: 'Un-Authorized',
         );
       } else {
-        final responseBody = jsonDecode(response.body);
+        String errorMessage = _extractErrorMessage(responseData);
+        
         return NetworkResponse(
           isSuccess: false,
           statusCode: response.statusCode,
-          errorMessage: responseBody['msg'] ?? _defaultMessage,
+          errorMessage: errorMessage,
         );
       }
-    } on Exception catch (e) {
+    } catch (e) {
+      print('❌ Error handling response: $e');
       return NetworkResponse(
         isSuccess: false,
-        statusCode: -1,
-        errorMessage: e.toString(),
+        statusCode: response.statusCode,
+        errorMessage: 'Error processing response: $e',
       );
+    }
+  }
+
+  // ✅ FIXED: Error message extraction
+  String _extractErrorMessage(dynamic responseData) {
+    try {
+      if (responseData == null) {
+        return _defaultMessage;
+      }
+      
+      if (responseData is Map) {
+        return responseData['msg']?.toString() ?? 
+               responseData['message']?.toString() ?? 
+               responseData['error']?.toString() ?? 
+               responseData['error_message']?.toString() ?? 
+               _defaultMessage;
+      } else if (responseData is String) {
+        // Try to parse string as JSON first
+        try {
+          final Map<String, dynamic> parsed = jsonDecode(responseData);
+          return _extractErrorMessage(parsed);
+        } catch (e) {
+          // If parsing fails, use the string directly
+          return responseData.isNotEmpty ? responseData : _defaultMessage;
+        }
+      } else {
+        return responseData.toString();
+      }
+    } catch (e) {
+      print('❌ Error extracting error message: $e');
+      return _defaultMessage;
     }
   }
 
@@ -230,30 +227,29 @@ class NetworkClient {
   }) {
     final String message =
         '''
-    URL-> $url
-    HEADERS-> $headers
-    BODY-> $body
-    ''';
+┌────────────────────────────────────────────────────────────────────────────
+│ #0   NetworkClient._logRequest
+├────────────────────────────────────────────────────────────────────────────
+│ 💡 URL: $url
+│ 💡 HEADERS: $headers
+│ 💡 BODY: $body
+└────────────────────────────────────────────────────────────────────────────
+''';
     _logger.i(message);
   }
 
   void _logResponse(Response response) {
     final String message =
         '''
-    URL-> ${response.request?.url}
-    STATUS-CODE-> ${response.statusCode}
-    HEADERS-> ${response.headers}
-    BODY-> ${response.body}
-    ''';
+┌────────────────────────────────────────────────────────────────────────────
+│ #0   NetworkClient._logResponse
+├────────────────────────────────────────────────────────────────────────────
+│ 💡 URL: ${response.request?.url}
+│ 💡 STATUS: ${response.statusCode}
+│ 💡 HEADERS: ${response.headers}
+│ 💡 BODY: ${response.body}
+└────────────────────────────────────────────────────────────────────────────
+''';
     _logger.i(message);
   }
-}  
-
-
-
-
-
-
-
-
-// lib/core/network/urls.dart
+}

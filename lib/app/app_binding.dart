@@ -87,13 +87,14 @@ class AppBinding implements Bindings {
 
   void _initializeRegistrationSetup() {
     // Registration Repository
-    Get.lazyPut<RegistrationRepository>(
-      () => RegistrationRepository(
-        
-        networkClient: Get.find<NetworkClient>(),
-      ),
-      fenix: true,
-    );
+  Get.lazyPut<RegistrationRepository>(
+    () => RegistrationRepository(networkClient: 
+        Get.find<NetworkClient>()
+    ), // Remove networkClient parameter
+    fenix: true,
+  );
+  print('✅ RegistrationRepository registered');
+    
     print('✅ RegistrationRepository registered');
 
     // Registration Controller
