@@ -6,7 +6,33 @@ import 'package:polli_e_commerce_app/core/network/url/url.dart';
 class UserZxRepository {
   final NetworkClient _networkClient = Get.find<NetworkClient>();
 
-  // OTP Verification
+  // ✅ ADDED: Email OTP Verification Method
+  Future<NetworkResponse> verifyEmailOtp({
+    required String email,
+    required String otp,
+  }) async {
+    return await _networkClient.postRequest(
+      '${Url.baseUrl}/api/verify-email-otp', // আপনার email OTP endpoint
+      body: {
+        'email': email,
+        'otp': otp,
+      },
+    );
+  }
+
+  // ✅ ADDED: Send OTP to Email Method
+  Future<NetworkResponse> sendEmailOtp({
+    required String email,
+  }) async {
+    return await _networkClient.postRequest(
+      '${Url.baseUrl}/api/send-email-otp', // আপনার send OTP endpoint
+      body: {
+        'email': email,
+      },
+    );
+  }
+
+  // Phone OTP Verification (existing)
   Future<NetworkResponse> verifyOtp({
     required String phone,
     required String otp,

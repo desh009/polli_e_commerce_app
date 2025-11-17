@@ -11,6 +11,7 @@ import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_respons
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/Registration_otp/view/ragistration_otp_view.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/binder/registration_binder.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/Ragistration_screen/view/registrtion_view.dart';
+import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/binding/log_in_binding.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_1_api_response/Login_screen/view/Login_screen.dart';
 import 'package:polli_e_commerce_app/core/screen/catergory/product_2_response/response/product_2_controller.dart';
 import 'package:polli_e_commerce_app/core/screen/product_screen.dart';
@@ -86,6 +87,12 @@ class AppPages {
       binding: FavouriteBinder(),
     ),
     GetPage(
+      name: _Paths.LOGIN,
+      page: () => LoginScreen(),
+      binding: LoginBinder(),
+    ),
+
+    GetPage(
       name: _Paths.DELIVERY_INFO,
       page: () => DeliveryInfoScreen(),
       binding: DeliveryInfoBinder(),
@@ -127,17 +134,17 @@ class AppPages {
       page: () => const AdvancedProfileScreen(),
       binding: ProfileBinding(),
     ),
-GetPage(
-  name: _Paths.REGISTER_OTP_VERIFICATION,
-  page: () {
-    // Get arguments from navigation
-    final Map<String, dynamic> arguments = Get.arguments ?? {};
-    return OtpScreen(
-      email: arguments['email'] ?? '', // ✅ Dynamic email from arguments
-    );
-  },
-  binding: LogoutBinding(),
-),
+    GetPage(
+      name: _Paths.REGISTER_OTP_VERIFICATION,
+      page: () {
+        // Get arguments from navigation
+        final Map<String, dynamic> arguments = Get.arguments ?? {};
+        return OtpScreen(
+          email: arguments['email'] ?? '', // ✅ Dynamic email from arguments
+        );
+      },
+      binding: LogoutBinding(),
+    ),
 
     GetPage(
       name: _Paths.SETTINGS,

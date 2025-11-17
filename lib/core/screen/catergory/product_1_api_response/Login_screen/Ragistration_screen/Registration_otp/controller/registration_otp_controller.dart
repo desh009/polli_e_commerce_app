@@ -13,6 +13,8 @@ class UserZxController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool isLoggedIn = false.obs;
+  final RxBool isVerificationSuccess = false.obs; // ✅ ADDED: For OTP success tracking
+  final RxBool isOtpSent = false.obs; // ✅ ADDED: For OTP sent status
 
   @override
   void onInit() {
@@ -34,7 +36,126 @@ class UserZxController extends GetxController {
     }
   }
 
-  // OTP Verification
+  // ✅ FIXED: Send OTP to Email
+  Future<void> sendEmailOtp(String email) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      isOtpSent.value = false;
+
+      print('📧 Sending OTP to email: $email');
+
+      final response = await _userZxRepository.sendEmailOtp(email: email);
+
+      if (response.isSuccess) {
+        isOtpSent.value = true;
+        print('✅ OTP sent successfully to: $email');
+        
+        Get.snackbar(
+          'সফল!',
+          'OTP আপনার ইমেইলে পাঠানো হয়েছে',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        errorMessage.value = response.errorMessage ?? 'OTP পাঠানো যায়নি';
+        Get.snackbar(
+          'ত্রুটি!',
+          response.errorMessage ?? 'OTP পাঠানো যায়নি',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      errorMessage.value = e.toString();
+      Get.snackbar(
+        'ত্রুটি!',
+        'Network error: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ✅ FIXED: Email OTP Verification
+  Future<void> verifyEmailOtp(String email, String otp) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      isVerificationSuccess.value = false;
+
+      print('🔐 Verifying Email OTP: $otp for email: $email');
+
+      final response = await _userZxRepository.verifyEmailOtp(
+        email: email, 
+        otp: otp
+      );
+      
+      if (response.isSuccess) {
+        if (response.responseData != null) {
+          final userModel = UserModelZX.fromJson(response.responseData!);
+          userModelZx.value = userModel;
+          currentUser.value = userModel.user;
+          authToken.value = userModel.token;
+          isLoggedIn.value = true;
+          isVerificationSuccess.value = true; // ✅ Set success to true
+
+          await _saveToken(userModel.token);
+          await _saveUserData(userModel.user);
+
+          print('✅ Email OTP Verification Successful');
+          
+          Get.snackbar(
+            'সফল!',
+            userModel.message.isNotEmpty ? userModel.message : 'ইমেইল ভেরিফিকেশন সফল হয়েছে',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+
+        } else {
+          errorMessage.value = 'Invalid response from server';
+          isVerificationSuccess.value = false;
+          Get.snackbar(
+            'ত্রুটি!',
+            'Invalid response from server',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      } else {
+        errorMessage.value = response.errorMessage ?? 'OTP verification failed';
+        isVerificationSuccess.value = false;
+        Get.snackbar(
+          'ত্রুটি!',
+          response.errorMessage ?? 'OTP verification failed',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      errorMessage.value = e.toString();
+      isVerificationSuccess.value = false;
+      Get.snackbar(
+        'ত্রুটি!',
+        'Network error: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ✅ Phone OTP Verification (existing - keep for phone verification)
   Future<void> verifyOtp(String phone, String otp) async {
     try {
       isLoading.value = true;
@@ -43,7 +164,6 @@ class UserZxController extends GetxController {
       final response = await _userZxRepository.verifyOtp(phone: phone, otp: otp);
       
       if (response.isSuccess) {
-        // ✅ Check if response data is not null before parsing
         if (response.responseData != null) {
           final userModel = UserModelZX.fromJson(response.responseData!);
           userModelZx.value = userModel;
@@ -122,7 +242,6 @@ class UserZxController extends GetxController {
       );
 
       if (response.isSuccess) {
-        // ✅ Check if response data is not null before parsing
         if (response.responseData != null) {
           final userModel = UserModelZX.fromJson(response.responseData!);
           userModelZx.value = userModel;
@@ -185,7 +304,6 @@ class UserZxController extends GetxController {
       final response = await _userZxRepository.login(email: email, password: password);
 
       if (response.isSuccess) {
-        // ✅ Check if response data is not null before parsing
         if (response.responseData != null) {
           final userModel = UserModelZX.fromJson(response.responseData!);
           userModelZx.value = userModel;
@@ -315,11 +433,20 @@ class UserZxController extends GetxController {
       currentUser.value = null;
       authToken.value = '';
       isLoggedIn.value = false;
+      isVerificationSuccess.value = false;
+      isOtpSent.value = false;
 
       Get.offAllNamed('/login');
     } catch (e) {
       print('Error during logout: $e');
     }
+  }
+
+  // Reset OTP Status (call this when going back to OTP screen)
+  void resetOtpStatus() {
+    isVerificationSuccess.value = false;
+    isOtpSent.value = false;
+    errorMessage.value = '';
   }
 
   // Local Storage Methods
