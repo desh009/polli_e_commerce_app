@@ -40,9 +40,13 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
     emailController.text = profile['email']?.toString() ?? '';
 
     // Load profile image if exists
-    if (profileController.hasProfileImage &&
-        profileController.profileImagePath != null) {
-      _selectedImage = File(profileController.profileImagePath!);
+    if (profileController.hasProfileImage.value &&
+        profileController.profileImagePath.value.isNotEmpty) {
+      try {
+        _selectedImage = File(profileController.profileImagePath.value);
+      } catch (e) {
+        print('❌ Error loading profile image: $e');
+      }
     }
   }
 
@@ -113,12 +117,13 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
     }
   }
 
+  // AdvancedProfileScreen.dart - _showImagePickerOptions method update করুন
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -130,27 +135,50 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
                   color: AppColors.primary,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ListTile(
                 leading: Icon(Icons.photo_library, color: AppColors.primary),
-                title: Text('গ্যালারি থেকে নির্বাচন করুন'),
+                title: const Text('গ্যালারি থেকে নির্বাচন করুন'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context); // First close bottom sheet
                   _pickImageFromGallery();
                 },
               ),
               ListTile(
                 leading: Icon(Icons.camera_alt, color: AppColors.primary),
-                title: Text('ক্যামেরা দিয়ে ছবি তুলুন'),
+                title: const Text('ক্যামেরা দিয়ে ছবি তুলুন'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context); // First close bottom sheet
                   _pickImageFromCamera();
+                },
+              ),
+              // ✅ ADD: Profile Screen Navigation Option
+              const Divider(),
+              ListTile(
+                leading: Icon(Icons.person, color: AppColors.primary),
+                title: const Text('প্রোফাইল স্ক্রিনে যান'),
+                onTap: () {
+                  Navigator.pop(context); // Close bottom sheet
+                  _navigateToProfileScreen();
                 },
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  // ✅ NEW METHOD: Navigate to Profile Screen
+  void _navigateToProfileScreen() {
+    // Nothing to do here since we're already in profile screen
+    // This is just for user information
+    Get.snackbar(
+      'ইনফো',
+      'আপনি ইতিমধ্যে প্রোফাইল স্ক্রিনে আছেন',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
     );
   }
 
@@ -223,7 +251,7 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
         // dateOfBirth: dateOfBirth,
         // image: _selectedImage,
       );
-      
+
       Get.snackbar(
         'সফল!',
         'প্রোফাইল আপডেট করা হয়েছে',
@@ -252,7 +280,8 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.save),
-            onPressed: _updateProfile, // ✅ FIXED: _updateProfile method কল হচ্ছে
+            onPressed:
+                _updateProfile, // ✅ FIXED: _updateProfile method কল হচ্ছে
             tooltip: 'সেভ করুন',
           ),
         ],
@@ -304,25 +333,25 @@ class _AdvancedProfileScreenState extends State<AdvancedProfileScreen> {
                           height: 120,
                         ),
                       )
-                    : profileController.hasProfileImage &&
-                            profileController.profileImagePath != null
-                        ? ClipOval(
-                            child: Image.file(
-                              File(profileController.profileImagePath!),
-                              fit: BoxFit.cover,
-                              width: 120,
-                              height: 120,
-                            ),
-                          )
-                        : CircleAvatar(
-                            radius: 60,
-                            backgroundColor: AppColors.primaryLight,
-                            child: Icon(
-                              Icons.person,
-                              size: 50,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                    : profileController.hasProfileImage.value &&
+                          profileController.profileImagePath.value.isNotEmpty
+                    ? ClipOval(
+                        child: Image.file(
+                          File(profileController.profileImagePath.value),
+                          fit: BoxFit.cover,
+                          width: 120,
+                          height: 120,
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppColors.primaryLight,
+                        child: Icon(
+                          Icons.person,
+                          size: 50,
+                          color: AppColors.primary,
+                        ),
+                      ),
               ),
               Positioned(
                 bottom: 0,

@@ -267,13 +267,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         if (productController.hasError) {
           return Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: .center,
               children: [
                 Icon(Icons.error, size: 64, color: Colors.red),
                 SizedBox(height: 16),
                 Text(
                   productController.errorMessage.value,
-                  textAlign: TextAlign.center,
+                  textAlign: .center,
                   style: TextStyle(fontSize: 16),
                 ),
                 SizedBox(height: 16),
@@ -286,7 +286,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         if (!productController.hasProduct) {
           return Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: .center,
               children: [
                 Icon(Icons.inventory_2, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
@@ -301,7 +301,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
         return SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: .start,
             children: [
               // Product Image Section with Favourite Button
               Stack(

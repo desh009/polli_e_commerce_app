@@ -2,176 +2,190 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProfileXController extends GetxController {
-  var userProfile = <String, dynamic>{}.obs;
-  var isLoading = false.obs;
-  var isProfileUpdated = false.obs;
-  final selectedImage = Rxn<File>();
+  // User profile data - Make sure these are properly observable
+  final RxMap<String, dynamic> userProfile = <String, dynamic>{}.obs;
+  final RxString profileImagePath = ''.obs;
+  final RxBool hasProfileImage = false.obs;
+  
+  // Loading states
+  final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
 
-  final ImagePicker _picker = ImagePicker();
-  final String _profileDataKey = 'user_profile_data';
-  final String _profileUpdatedKey = 'profile_updated_status';
+  // ✅ ADD: Separate observable variables for name and email
+  final RxString _userName = 'Palli Swad User'.obs;
+  final RxString _userEmail = 'customer@polliswad.com'.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadProfileData();
+    print('🔄 ProfileXController initialized');
+    _loadInitialProfileData();
   }
 
-  Future<void> _loadProfileData() async {
-    try {
-      isLoading.value = true;
-      final prefs = await SharedPreferences.getInstance();
+  void _loadInitialProfileData() {
+    print('📥 Loading initial profile data');
+    
+    userProfile.value = {
+      'full_name': 'Palli Swad User',
+      'email': 'customer@polliswad.com',
+      'phone': '+8801XXXXXXXXX',
+      'address': 'Dhaka, Bangladesh',
+      'date_of_birth': '01/01/1990',
+    };
+    
+    // ✅ UPDATE separate observables
+    _userName.value = userProfile['full_name'] ?? 'Palli Swad User';
+    _userEmail.value = userProfile['email'] ?? 'customer@polliswad.com';
+    
+    _loadProfileImageFromStorage();
+  }
 
-      final profileDataString = prefs.getString(_profileDataKey);
-      if (profileDataString != null) {
-        userProfile.value = _parseProfileData(profileDataString);
+  void _loadProfileImageFromStorage() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final imageFile = File('${directory.path}/profile_image.jpg');
+      
+      if (await imageFile.exists()) {
+        profileImagePath.value = imageFile.path;
+        hasProfileImage.value = true;
+        print('📸 Profile image loaded from storage: ${imageFile.path}');
+        update();
       } else {
-        userProfile.value = {
-          'name': '',
-          'email': '',
-          'phone': '',
-          'address': '',
-          'date_of_birth': '',
-          'has_profile_image': false,
-        };
+        print('📸 No profile image found in storage');
       }
-
-      isProfileUpdated.value = prefs.getBool(_profileUpdatedKey) ?? false;
-
-      final imagePath = userProfile.value['profile_image_local'];
-      if (imagePath != null && imagePath is String) {
-        final file = File(imagePath);
-        if (await file.exists()) {
-          selectedImage.value = file;
-        }
-      }
-
-      isLoading.value = false;
     } catch (e) {
-      isLoading.value = false;
+      print('❌ Error loading profile image from storage: $e');
     }
   }
 
-  Map<String, dynamic> _parseProfileData(String dataString) {
-    try {
-      if (dataString.startsWith('{') && dataString.endsWith('}')) {
-        String content = dataString.substring(1, dataString.length - 1);
-        List<String> pairs = content.split(',');
-
-        Map<String, dynamic> result = {};
-        for (String pair in pairs) {
-          List<String> keyValue = pair.split(':');
-          if (keyValue.length == 2) {
-            String key = keyValue[0].trim().replaceAll("'", "");
-            String value = keyValue[1].trim().replaceAll("'", "");
-
-            if (value == 'true')
-              result[key] = true;
-            else if (value == 'false')
-              result[key] = false;
-            else
-              result[key] = value;
-          }
-        }
-        return result;
-      }
-      return {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  Future<void> _saveProfileData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_profileDataKey, userProfile.value.toString());
-      await prefs.setBool(_profileUpdatedKey, isProfileUpdated.value);
-    } catch (e) {
-      print('❌ Error saving profile data: $e');
-    }
-  }
-
-  // ✅ NEW METHOD: updateProfileWithAllFields যোগ করুন
+  // ✅ FIXED: Update Profile Method with proper observable updates
   Future<void> updateProfile({
     required String name,
     required String email,
     required String phone,
-    required String address,
-    String dateOfBirth = '',
+    String? address,
+    String? dateOfBirth,
     File? image,
   }) async {
     try {
       isLoading.value = true;
+      errorMessage.value = '';
 
-      // Update local profile data
-      userProfile.value = {
-        ...userProfile.value,
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'address': address,
-        'date_of_birth': dateOfBirth,
-        'updated_at': DateTime.now().toString(),
-      };
+      print('🔄 PROFILE UPDATE STARTED: $name, $email, $phone');
 
-      // Handle image if provided
+      // Update profile image if provided
       if (image != null) {
-        selectedImage.value = image;
-        userProfile.value = {
-          ...userProfile.value,
-          'profile_image_local': image.path,
-          'has_profile_image': true,
-        };
+        await updateProfileImage(image);
       }
 
-      isProfileUpdated.value = true;
-      await _saveProfileData();
+      // ✅ FIXED: Update user profile data
+      userProfile.value = {
+        'full_name': name,
+        'email': email,
+        'phone': phone,
+        'address': address ?? userProfile['address'],
+        'date_of_birth': dateOfBirth ?? userProfile['date_of_birth'],
+      };
 
-      isLoading.value = false;
+      // ✅ CRITICAL FIX: Update separate observable variables
+      _userName.value = name;
+      _userEmail.value = email;
+
+      print('✅ UserProfile updated: ${userProfile.value}');
+      print('✅ Observable values updated - Name: $_userName, Email: $_userEmail');
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      // ✅ IMPORTANT: Force update all listeners
+      update();
+      
+      print('✅ update() method called - notifying all listeners');
 
       Get.snackbar(
         'সফল!',
         'প্রোফাইল আপডেট করা হয়েছে',
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
 
     } catch (e) {
+      errorMessage.value = 'Profile update failed: $e';
+      print('❌ Error updating profile: $e');
+      
+      Get.snackbar(
+        'ত্রুটি',
+        'প্রোফাইল আপডেট করতে সমস্যা হয়েছে: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      rethrow;
+    } finally {
       isLoading.value = false;
-      Get.snackbar('ত্রুটি', 'আপডেট করতে সমস্যা হয়েছে: $e');
     }
   }
 
-  // Getters
-  String get userDisplayName =>
-      userProfile.value['name']?.toString() ?? 'আপনার নাম';
-  String get userEmail => userProfile.value['email']?.toString() ?? 'ইমেইল নেই';
-  String get userPhone =>
-      userProfile.value['phone']?.toString() ?? 'ফোন নম্বর নেই';
-  String get userAddress =>
-      userProfile.value['address']?.toString() ?? 'ঠিকানা নেই';
-  String get userDateOfBirth =>
-      userProfile.value['date_of_birth']?.toString() ?? 'জন্ম তারিখ নেই';
-  bool get hasProfileImage => userProfile.value['has_profile_image'] == true;
-  String? get profileImagePath =>
-      userProfile.value['profile_image_local']?.toString();
-  bool get isProfileCompleted =>
-      userProfile.value['name'] != null &&
-      userProfile.value['name']!.toString().isNotEmpty;
+  Future<void> updateProfileImage(File imageFile) async {
+    try {
+      isLoading.value = true;
 
-  String get lastUpdateTime {
-    final updatedAt = userProfile.value['updated_at'];
-    if (updatedAt != null) {
-      try {
-        final dateTime = DateTime.parse(updatedAt.toString());
-        return 'সর্বশেষ আপডেট: ${dateTime.day}/${dateTime.month}/${dateTime.year}';
-      } catch (e) {
-        return 'সর্বশেষ আপডেট: অজানা';
-      }
+      print('🔄 Updating profile image...');
+
+      final directory = await getApplicationDocumentsDirectory();
+      final savedImage = File('${directory.path}/profile_image.jpg');
+      
+      await imageFile.copy(savedImage.path);
+      
+      profileImagePath.value = savedImage.path;
+      hasProfileImage.value = true;
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      print('✅ Profile image updated: ${savedImage.path}');
+      
+      update();
+
+      Get.snackbar(
+        'সফল!',
+        'প্রোফাইল ছবি আপডেট করা হয়েছে',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+    } catch (e) {
+      print('❌ Error updating profile image: $e');
+      
+      Get.snackbar(
+        'ত্রুটি',
+        'ছবি আপডেট করতে সমস্যা হয়েছে: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      rethrow;
+    } finally {
+      isLoading.value = false;
     }
-    return 'কখনো আপডেট করা হয়নি';
+  }
+
+  // ✅ FIXED: Getter methods that return observable values
+  String get userName => _userName.value;
+  String get userEmail => _userEmail.value;
+
+  // ✅ For debugging
+  void printCurrentState() {
+    print('''
+📊 ProfileXController Current State:
+- UserName: $_userName
+- UserEmail: $_userEmail  
+- UserProfile: $userProfile
+- HasImage: $hasProfileImage
+- ImagePath: $profileImagePath
+''');
   }
 }
