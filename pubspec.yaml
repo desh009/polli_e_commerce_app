@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'
+  sdk: ">=3.10.0 <4.0.0" 
+
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -39,13 +40,19 @@ dependencies:
   http: ^1.5.0
   get: ^4.7.2
   shared_preferences: ^2.5.3
-  google_sign_in: ^7.1.1
   flutter_facebook_auth: ^7.1.2
   logger: ^2.6.1
   aamarpay: ^1.0.15
   get_storage: ^2.1.1
   url_launcher: ^6.3.2
   image_picker: ^1.2.0
+  path_provider: ^2.1.5
+  firebase_core: ^2.25.4
+  firebase_auth: ^4.6.5
+  cloud_firestore: ^4.7.5
+  firebase_messaging: ^14.6.7
+  google_sign_in: ^7.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
